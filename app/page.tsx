@@ -480,21 +480,6 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
           }}>Twitter</El>
       </div>
 
-      {/* ── Quote ── */}
-      <div className="absolute" style={{
-        right: 'clamp(20px, 3.5vw, 40px)', top: 'clamp(12px, 2vh, 24px)',
-        textAlign: 'right', maxWidth: 'clamp(150px, 18vw, 240px)',
-      }}>
-        <p style={{ color: dim, opacity: 0.4,
-          fontSize: 'clamp(0.82rem, 0.88vw, 0.9rem)',
-          fontFamily: "'Playfair Display', serif", fontStyle: 'italic', lineHeight: 1.5,
-        }}>&ldquo;One must still have chaos in oneself to give birth to a dancing star.&rdquo;</p>
-        <p style={{ color: dim, opacity: 0.28,
-          fontSize: 'clamp(0.82rem, 0.65vw, 0.85rem)',
-          fontFamily: "'Pretendard Variable', sans-serif",
-          letterSpacing: '0.12em', marginTop: '2px',
-        }}>NIETZSCHE</p>
-      </div>
     </div>
   )
 }

@@ -98,13 +98,13 @@ export default function TimelinePage() {
         style={{ padding: 'clamp(28px, 3vw, 44px) clamp(64px, 9vw, 100px) 0' }}>
         <button onClick={() => router.push('/')}
           className="label-caps text-white/40 hover:text-white/80 transition-colors"
-          style={{ fontSize: '0.55rem', letterSpacing: '0.25em' }}>
+          style={{ fontSize: '0.78rem', letterSpacing: '0.25em' }}>
           ← BACK
         </button>
         <div className="flex items-baseline gap-2">
-          <span className="label-caps text-white/25" style={{ fontSize: '0.5rem', letterSpacing: '0.3em' }}>TIMELINE</span>
+          <span className="label-caps text-white/25" style={{ fontSize: '0.75rem', letterSpacing: '0.3em' }}>TIMELINE</span>
           <span className="text-white/15">·</span>
-          <span className="heading-condensed text-white/40" style={{ fontStyle: 'italic', fontSize: '0.7rem' }}>
+          <span className="heading-condensed text-white/40" style={{ fontStyle: 'italic', fontSize: '0.88rem' }}>
             The Wheel of Karma
           </span>
         </div>
@@ -245,7 +245,7 @@ export default function TimelinePage() {
                   <span className="block h-px sketch-jitter-line" style={{
                     width: '24px', background: `${getAccent(active)}50`, filter: 'url(#sketchy)',
                   }} />
-                  <span style={{ color: getAccent(active), fontSize: '0.6rem', opacity: 0.6, fontFamily: "'Playfair Display', serif", fontStyle: 'italic' }}>※</span>
+                  <span style={{ color: getAccent(active), fontSize: '0.82rem', opacity: 0.6, fontFamily: "'Playfair Display', serif", fontStyle: 'italic' }}>※</span>
                   <span className="block h-px sketch-jitter-line" style={{
                     width: '24px', background: `${getAccent(active)}50`, filter: 'url(#sketchy)',
                   }} />
@@ -254,12 +254,12 @@ export default function TimelinePage() {
                 {/* Date + type */}
                 <div className="text-center mb-3">
                   <span className="label-caps" style={{
-                    fontSize: '0.42rem', letterSpacing: '0.25em',
+                    fontSize: '0.75rem', letterSpacing: '0.25em',
                     color: getAccent(active), opacity: 0.9,
                   }}>{active.storyDate}</span>
                   {active.type && (
                     <span className="label-caps ml-2" style={{
-                      fontSize: '0.38rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)',
+                      fontSize: '0.72rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)',
                     }}>· {TYPE_LABELS[active.type] || active.type}</span>
                   )}
                 </div>
@@ -274,7 +274,7 @@ export default function TimelinePage() {
                 {active.character && (
                   <div className="text-center mb-4">
                     <span className="label-caps" style={{
-                      fontSize: '0.4rem', letterSpacing: '0.2em',
+                      fontSize: '0.75rem', letterSpacing: '0.2em',
                       color: getAccent(active), opacity: 0.5,
                       borderBottom: `1px solid ${getAccent(active)}30`, paddingBottom: '2px',
                     }}>
@@ -306,16 +306,16 @@ export default function TimelinePage() {
                   onClick={() => { const idx = events.findIndex(e => e.id === activeId); if (idx > 0) setActiveId(events[idx - 1].id) }}
                   disabled={events.findIndex(e => e.id === activeId) === 0}
                   className="label-caps disabled:opacity-15 hover:text-white/80"
-                  style={{ fontSize: '0.48rem', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.4)' }}
+                  style={{ fontSize: '0.75rem', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.4)' }}
                 >← PREV</button>
-                <span className="label-caps text-white/20" style={{ fontSize: '0.4rem' }}>
+                <span className="label-caps text-white/20" style={{ fontSize: '0.72rem' }}>
                   {String(events.findIndex(e => e.id === activeId) + 1).padStart(2, '0')} / {String(events.length).padStart(2, '0')}
                 </span>
                 <button
                   onClick={() => { const idx = events.findIndex(e => e.id === activeId); if (idx < events.length - 1) setActiveId(events[idx + 1].id) }}
                   disabled={events.findIndex(e => e.id === activeId) === events.length - 1}
                   className="label-caps disabled:opacity-15 hover:text-white/80"
-                  style={{ fontSize: '0.48rem', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.4)' }}
+                  style={{ fontSize: '0.75rem', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.4)' }}
                 >NEXT →</button>
               </div>
             </div>

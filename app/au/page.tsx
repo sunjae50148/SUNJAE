@@ -36,13 +36,13 @@ export default function AUPage() {
         style={{ padding: 'clamp(28px, 3vw, 44px) clamp(40px, 6vw, 80px) 0' }}>
         <button onClick={() => router.push('/')}
           className="label-caps text-white/40 hover:text-white/80 transition-colors"
-          style={{ fontSize: '0.55rem', letterSpacing: '0.25em' }}>
+          style={{ fontSize: '0.78rem', letterSpacing: '0.25em' }}>
           ← BACK
         </button>
         <div className="flex items-baseline gap-2">
-          <span className="label-caps text-white/25" style={{ fontSize: '0.5rem', letterSpacing: '0.3em' }}>UNIVERSES</span>
+          <span className="label-caps text-white/25" style={{ fontSize: '0.75rem', letterSpacing: '0.3em' }}>UNIVERSES</span>
           <span className="text-white/15">·</span>
-          <span className="heading-condensed text-white/40" style={{ fontStyle: 'italic', fontSize: '0.7rem' }}>
+          <span className="heading-condensed text-white/40" style={{ fontStyle: 'italic', fontSize: '0.88rem' }}>
             Alternate Worlds
           </span>
         </div>
@@ -109,7 +109,7 @@ function AUCard({ au, idx }: { au: AU; idx: number }) {
           </div>
           {au.subtitle && (
             <p className="heading-condensed mt-0.5 pl-5" style={{
-              fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)',
+              fontSize: '0.82rem', color: 'rgba(255,255,255,0.35)',
               fontStyle: 'italic',
             }}>
               {au.subtitle}
@@ -117,7 +117,7 @@ function AUCard({ au, idx }: { au: AU; idx: number }) {
           )}
         </div>
         <span className="label-caps" style={{
-          fontSize: '0.38rem', letterSpacing: '0.18em',
+          fontSize: '0.72rem', letterSpacing: '0.18em',
           color: 'rgba(255,255,255,0.2)',
         }}>
           {String(idx + 1).padStart(2, '0')}
@@ -150,7 +150,7 @@ function AUCard({ au, idx }: { au: AU; idx: number }) {
             )}
           </div>
           <p className="heading-display text-center" style={{
-            color: MANON_COLOR, fontSize: '0.8rem', fontStyle: 'italic',
+            color: MANON_COLOR, fontSize: '0.88rem', fontStyle: 'italic',
             lineHeight: 1.2,
           }}>{au.manon.name || 'Manon'}</p>
         </div>
