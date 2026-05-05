@@ -162,7 +162,7 @@ function AUCard({ au, idx }: { au: AU; idx: number }) {
           }} />
           <div className="py-2 text-center">
             <span className="heading-display" style={{
-              color: accent, fontSize: 'clamp(0.75rem, 1vw, 0.95rem)',
+              color: accent, fontSize: 'clamp(0.88rem, 1vw, 0.98rem)',
               fontStyle: 'italic', whiteSpace: 'nowrap',
             }}>{au.relationship || '—'}</span>
           </div>
@@ -190,7 +190,7 @@ function AUCard({ au, idx }: { au: AU; idx: number }) {
             )}
           </div>
           <p className="heading-display text-center" style={{
-            color: DYLAN_COLOR, fontSize: '0.8rem', fontStyle: 'italic',
+            color: DYLAN_COLOR, fontSize: '0.88rem', fontStyle: 'italic',
             lineHeight: 1.2,
           }}>{au.dylan.name || 'Dylan'}</p>
         </div>
@@ -213,7 +213,7 @@ function AUCard({ au, idx }: { au: AU; idx: number }) {
                 }}>
                   <p className="text-editorial whitespace-pre-wrap" style={{
                     color: 'rgba(255,255,255,0.65)',
-                    fontSize: 'clamp(0.68rem, 0.85vw, 0.78rem)',
+                    fontSize: 'clamp(0.85rem, 0.9vw, 0.92rem)',
                     lineHeight: 1.7,
                   }}>{au.manon.dialogue}</p>
                 </div>
@@ -229,7 +229,7 @@ function AUCard({ au, idx }: { au: AU; idx: number }) {
                 }}>
                   <p className="text-editorial whitespace-pre-wrap" style={{
                     color: 'rgba(255,255,255,0.65)',
-                    fontSize: 'clamp(0.68rem, 0.85vw, 0.78rem)',
+                    fontSize: 'clamp(0.85rem, 0.9vw, 0.92rem)',
                     lineHeight: 1.7, textAlign: 'right',
                   }}>{au.dylan.dialogue}</p>
                 </div>

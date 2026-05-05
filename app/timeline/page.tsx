@@ -291,7 +291,7 @@ export default function TimelinePage() {
                 {/* Description */}
                 <p className="text-editorial whitespace-pre-wrap" style={{
                   color: 'rgba(255,255,255,0.6)',
-                  fontSize: 'clamp(0.76rem, 0.95vw, 0.88rem)',
+                  fontSize: 'clamp(0.88rem, 1vw, 0.95rem)',
                   lineHeight: 1.85,
                 }}>
                   {active.description || <span style={{ fontStyle: 'italic', opacity: 0.4 }}>내용 없음</span>}

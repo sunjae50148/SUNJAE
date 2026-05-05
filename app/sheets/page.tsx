@@ -132,7 +132,7 @@ export default function SheetsPage() {
           </h1>
           <p className="heading-condensed mt-2" style={{
             color: 'rgba(255,255,255,0.4)', fontStyle: 'italic',
-            fontSize: 'clamp(0.75rem, 1.05vw, 0.95rem)', letterSpacing: '0.04em',
+            fontSize: 'clamp(0.88rem, 1.05vw, 0.98rem)', letterSpacing: '0.04em',
           }}>
             sheet list — 체크리스트, 외부 시트, 링크
           </p>

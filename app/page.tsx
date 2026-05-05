@@ -312,7 +312,7 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
           letterSpacing: '0.06em', marginBottom: '3px',
         }}>Wizard and Ballerina</p>
         <p style={{
-          color: dim, fontSize: 'clamp(0.72rem, 0.9vw, 0.82rem)',
+          color: dim, fontSize: 'clamp(0.82rem, 0.9vw, 0.9rem)',
           fontFamily: "'Playfair Display', serif", opacity: 0.7,
         }}>of <em>Dylan</em> &times; <em>Manon</em></p>
       </div>
@@ -344,7 +344,7 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
         >
           <span style={{
             display: 'block',
-            fontSize: 'clamp(0.62rem, 0.65vw, 0.72rem)',
+            fontSize: 'clamp(0.82rem, 0.65vw, 0.82rem)',
             fontFamily: "'Pretendard Variable', sans-serif",
             letterSpacing: '0.2em', opacity: 0.5,
             marginBottom: '2px', fontStyle: 'normal',
@@ -412,7 +412,7 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
               {prop.sub && (
                 <span style={{
                   display: 'block',
-                  fontSize: 'clamp(0.6rem, 0.65vw, 0.68rem)',
+                  fontSize: 'clamp(0.82rem, 0.75vw, 0.88rem)',
                   fontStyle: 'italic', letterSpacing: '0.02em',
                   opacity: hovered === 100 + i ? 0.65 : 0,
                   maxHeight: hovered === 100 + i ? '18px' : '0px',
@@ -430,7 +430,7 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
           }}>
             <span style={{
               color: loggedUser === 'manon' ? '#D9809A' : '#C8C8C8',
-              fontSize: 'clamp(0.6rem, 0.6vw, 0.65rem)',
+              fontSize: 'clamp(0.82rem, 0.7vw, 0.85rem)',
               fontFamily: "'Pretendard Variable', sans-serif",
               letterSpacing: '0.2em', opacity: 0.7,
               textTransform: 'uppercase' as const,
@@ -458,7 +458,7 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
           </svg>
           <span style={{
             color, opacity: 0.65,
-            fontSize: 'clamp(0.65rem, 0.75vw, 0.72rem)',
+            fontSize: 'clamp(0.82rem, 0.85vw, 0.9rem)',
             fontFamily: "'Pretendard Variable', sans-serif",
             letterSpacing: '0.22em', textTransform: 'uppercase' as const,
             transition: 'opacity 0.3s',
@@ -474,7 +474,7 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
           className={isOverlay ? '' : 'cursor-pointer'}
           style={{
             background: 'none', border: 'none', color: dim, opacity: 0.5,
-            fontSize: 'clamp(0.6rem, 0.65vw, 0.68rem)',
+            fontSize: 'clamp(0.82rem, 0.75vw, 0.88rem)',
             fontFamily: "'Pretendard Variable', sans-serif",
             letterSpacing: '0.15em', textTransform: 'uppercase' as const,
           }}>Twitter</El>
@@ -486,11 +486,11 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
         textAlign: 'right', maxWidth: 'clamp(150px, 18vw, 240px)',
       }}>
         <p style={{ color: dim, opacity: 0.4,
-          fontSize: 'clamp(0.68rem, 0.78vw, 0.78rem)',
+          fontSize: 'clamp(0.82rem, 0.88vw, 0.9rem)',
           fontFamily: "'Playfair Display', serif", fontStyle: 'italic', lineHeight: 1.5,
         }}>&ldquo;One must still have chaos in oneself to give birth to a dancing star.&rdquo;</p>
         <p style={{ color: dim, opacity: 0.28,
-          fontSize: 'clamp(0.58rem, 0.55vw, 0.62rem)',
+          fontSize: 'clamp(0.82rem, 0.65vw, 0.85rem)',
           fontFamily: "'Pretendard Variable', sans-serif",
           letterSpacing: '0.12em', marginTop: '2px',
         }}>NIETZSCHE</p>

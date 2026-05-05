@@ -212,14 +212,14 @@ export default function ForewordPage() {
                 </p>
                 {!isTyping && displayedText && (
                   <div className="absolute bottom-0 right-0 flex items-center gap-2 animate-pulse">
-                    <span className="label-caps text-white/30" style={{ fontSize: '0.45rem', letterSpacing: '0.25em' }}>NEXT</span>
-                    <span style={{ color: ACCENT, fontSize: '0.7rem' }}>▼</span>
+                    <span className="label-caps text-white/30" style={{ fontSize: '0.72rem', letterSpacing: '0.25em' }}>NEXT</span>
+                    <span style={{ color: ACCENT, fontSize: '0.85rem' }}>▼</span>
                   </div>
                 )}
               </div>
             ) : (
               <div className="flex items-center justify-center h-full" style={{ minHeight: 'clamp(100px, 16vh, 160px)' }}>
-                <p className="heading-condensed text-white/35" style={{ fontStyle: 'italic', fontSize: 'clamp(0.85rem, 1.15vw, 1.05rem)', textAlign: 'center' }}>
+                <p className="heading-condensed text-white/35" style={{ fontStyle: 'italic', fontSize: 'clamp(0.92rem, 1.15vw, 1.05rem)', textAlign: 'center' }}>
                   {data?.parts && data.parts.length > 0
                     ? '— Click on the character to begin —'
                     : '— No dialogues configured —'}
