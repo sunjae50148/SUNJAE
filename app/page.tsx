@@ -15,8 +15,8 @@ const PROPS = [
 ]
 
 const EXTRAS = [
-  { label: 'Foreword', by: 'Manon', href: '/foreword', vx: 20, vy: 82, rot: -1.5 },
-  { label: 'Rebuttal', by: 'Dylan', href: '/rebuttal', vx: 80, vy: 78, rot: 1 },
+  { label: 'Interview with Manon', by: 'Manon', href: '/foreword', vx: 20, vy: 82, rot: -1.5 },
+  { label: 'Interview with Dylan', by: 'Dylan', href: '/rebuttal', vx: 80, vy: 78, rot: 1 },
 ]
 
 const ADMIN_PROPS = [
@@ -310,7 +310,7 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
           color: dim, fontSize: 'clamp(0.95rem, 1.5vw, 1.15rem)',
           fontFamily: "'Playfair Display', serif", fontStyle: 'italic',
           letterSpacing: '0.06em', marginBottom: '3px',
-        }}>Where Eyes Linger</p>
+        }}>Wizard and Ballerina</p>
         <p style={{
           color: dim, fontSize: 'clamp(0.72rem, 0.9vw, 0.82rem)',
           fontFamily: "'Playfair Display', serif", opacity: 0.7,
@@ -377,7 +377,7 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
             fontFamily: "'Playfair Display', serif", fontStyle: 'italic',
             textAlign: 'center' as const,
           }}>
-          {ext.label}<span style={{ opacity: 0.35, fontSize: '0.8em' }}> by </span>{ext.by}
+          {ext.label}
         </El>
       ))}
 
