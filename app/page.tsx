@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic'
 const ChatPopupDynamic = dynamic(() => import('@/components/ChatPopup'), { ssr: false })
 
 const PROPS = [
-  { label: 'Prologue', sub: 'Only poison grows from the seed of poison', href: '/', vx: 24, vy: 50, rot: -3, sz: 0.92 },
+  { label: 'Prologue', sub: 'Wizard and Ballerina', href: '/', vx: 24, vy: 50, rot: -3, sz: 0.92 },
   { label: 'Characters', sub: 'Manon × Dylan', href: '/character', vx: 68, vy: 47, rot: 2, sz: 0.88 },
   { label: 'Records', sub: 'Roleplay Session Archive', href: '/record', vx: 35, vy: 65, rot: -1.5, sz: 1.0 },
   { label: 'Timeline', sub: 'The Wheel of Karma', href: '/timeline', vx: 66, vy: 70, rot: 2.5, sz: 1.05 },

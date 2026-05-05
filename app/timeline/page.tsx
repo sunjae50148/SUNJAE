@@ -105,7 +105,7 @@ export default function TimelinePage() {
           <span className="label-caps text-white/25" style={{ fontSize: '0.75rem', letterSpacing: '0.3em' }}>TIMELINE</span>
           <span className="text-white/15">·</span>
           <span className="heading-condensed text-white/40" style={{ fontStyle: 'italic', fontSize: '0.88rem' }}>
-            The Wheel of Karma
+            Doomsday
           </span>
         </div>
       </div>
