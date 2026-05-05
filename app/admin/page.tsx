@@ -910,11 +910,11 @@ export default function AdminPage() {
     setAUUploadingFor({ idx, who })
     try {
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('image', file)
       const res = await fetch('/api/upload-image', { method: 'POST', body: formData })
       const data = await res.json()
-      if (data?.url) {
-        updateAUCharacter(idx, who, { image: data.url })
+      if (data?.path) {
+        updateAUCharacter(idx, who, { image: data.path })
       } else {
         alert('이미지 업로드 실패')
       }
