@@ -15,12 +15,12 @@ const PROPS = [
 ]
 
 const EXTRAS = [
-  { label: 'Foreword', by: 'Manon', href: '/foreword', vx: 14, vy: 82, rot: -1.5 },
+  { label: 'Foreword', by: 'Manon', href: '/foreword', vx: 20, vy: 82, rot: -1.5 },
   { label: 'Rebuttal', by: 'Dylan', href: '/rebuttal', vx: 80, vy: 78, rot: 1 },
 ]
 
 const ADMIN_PROPS = [
-  { label: 'Admin', sub: 'Stage Door', href: '/admin', vx: 20, vy: 90, rot: -2, sz: 0.85 },
+  { label: 'Admin', sub: 'Stage Door', href: '/admin', vx: 24, vy: 90, rot: -2, sz: 0.85 },
   { label: 'Sheets', sub: 'Documents & Links', href: '/sheets', vx: 50, vy: 88, rot: 0.5, sz: 0.85 },
   { label: 'Logout', sub: '', href: '__logout__', vx: 80, vy: 90, rot: 1.5, sz: 0.8 },
 ]
@@ -307,13 +307,13 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
           marginBottom: 'clamp(4px, 0.8vh, 10px)',
         }}>SOMBRE</h1>
         <p style={{
-          color: dim, fontSize: 'clamp(0.85rem, 1.5vw, 1.15rem)',
+          color: dim, fontSize: 'clamp(0.95rem, 1.5vw, 1.15rem)',
           fontFamily: "'Playfair Display', serif", fontStyle: 'italic',
           letterSpacing: '0.06em', marginBottom: '3px',
         }}>Where Eyes Linger</p>
         <p style={{
-          color: dim, fontSize: 'clamp(0.6rem, 0.9vw, 0.8rem)',
-          fontFamily: "'Playfair Display', serif", opacity: 0.5,
+          color: dim, fontSize: 'clamp(0.72rem, 0.9vw, 0.82rem)',
+          fontFamily: "'Playfair Display', serif", opacity: 0.7,
         }}>of <em>Dylan</em> &times; <em>Manon</em></p>
       </div>
 
@@ -334,7 +334,7 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
             background: 'none', border: 'none',
             textAlign: 'center' as const, color,
             fontFamily: "'Playfair Display', serif", fontWeight: 400,
-            fontSize: `calc(clamp(1.05rem, 2vw, 1.5rem) * ${prop.sz})`,
+            fontSize: `calc(clamp(1.2rem, 2vw, 1.5rem) * ${prop.sz})`,
             letterSpacing: hovered === i ? '0.2em' : '0.06em',
             transition: 'letter-spacing 0.4s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.3s',
             fontStyle: hovered === i ? 'italic' as const : 'normal' as const,
@@ -344,17 +344,17 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
         >
           <span style={{
             display: 'block',
-            fontSize: 'clamp(0.45rem, 0.55vw, 0.5rem)',
+            fontSize: 'clamp(0.62rem, 0.65vw, 0.72rem)',
             fontFamily: "'Pretendard Variable', sans-serif",
-            letterSpacing: '0.2em', opacity: 0.3,
+            letterSpacing: '0.2em', opacity: 0.5,
             marginBottom: '2px', fontStyle: 'normal',
           }}>{String(i + 1).padStart(2, '0')}</span>
           {prop.label}
           <span style={{
             display: 'block',
-            fontSize: 'clamp(0.48rem, 0.7vw, 0.6rem)',
+            fontSize: 'clamp(0.65rem, 0.75vw, 0.72rem)',
             fontStyle: 'italic', letterSpacing: '0.02em',
-            opacity: hovered === i ? 0.45 : 0,
+            opacity: hovered === i ? 0.65 : 0,
             maxHeight: hovered === i ? '18px' : '0px',
             overflow: 'hidden',
             transition: 'opacity 0.35s, max-height 0.35s',
@@ -373,7 +373,7 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
             left: `${ext.vx}%`, top: `${ext.vy}%`,
             transform: `translate(-50%, -50%) rotate(${ext.rot}deg)`,
             background: 'none', border: 'none', color: dim,
-            fontSize: 'clamp(0.7rem, 1vw, 0.85rem)',
+            fontSize: 'clamp(0.85rem, 1.1vw, 1rem)',
             fontFamily: "'Playfair Display', serif", fontStyle: 'italic',
             textAlign: 'center' as const,
           }}>
@@ -401,20 +401,20 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
                 textAlign: 'center' as const,
                 color: dim,
                 fontFamily: "'Playfair Display', serif", fontWeight: 400,
-                fontSize: `calc(clamp(0.85rem, 1.5vw, 1.15rem) * ${prop.sz})`,
+                fontSize: `calc(clamp(1rem, 1.5vw, 1.2rem) * ${prop.sz})`,
                 letterSpacing: hovered === 100 + i ? '0.2em' : '0.06em',
                 transition: 'letter-spacing 0.4s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.3s',
                 fontStyle: hovered === 100 + i ? 'italic' as const : 'normal' as const,
-                opacity: hovered !== null && hovered !== 100 + i ? 0.2 : 0.65,
+                opacity: hovered !== null && hovered !== 100 + i ? 0.3 : 0.85,
               }}
             >
               {prop.label}
               {prop.sub && (
                 <span style={{
                   display: 'block',
-                  fontSize: 'clamp(0.42rem, 0.6vw, 0.52rem)',
+                  fontSize: 'clamp(0.6rem, 0.65vw, 0.68rem)',
                   fontStyle: 'italic', letterSpacing: '0.02em',
-                  opacity: hovered === 100 + i ? 0.45 : 0,
+                  opacity: hovered === 100 + i ? 0.65 : 0,
                   maxHeight: hovered === 100 + i ? '18px' : '0px',
                   overflow: 'hidden',
                   transition: 'opacity 0.35s, max-height 0.35s',
@@ -430,9 +430,9 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
           }}>
             <span style={{
               color: loggedUser === 'manon' ? '#D9809A' : '#C8C8C8',
-              fontSize: 'clamp(0.42rem, 0.5vw, 0.48rem)',
+              fontSize: 'clamp(0.6rem, 0.6vw, 0.65rem)',
               fontFamily: "'Pretendard Variable', sans-serif",
-              letterSpacing: '0.2em', opacity: 0.5,
+              letterSpacing: '0.2em', opacity: 0.7,
               textTransform: 'uppercase' as const,
             }}>logged in as {loggedUser}</span>
           </div>
@@ -450,15 +450,15 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
             display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '4px',
           }}
         >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.4 }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.6 }}>
             <circle cx="5" cy="5" r="3.5" stroke={color} strokeWidth="0.9" />
             <line x1="7.5" y1="7.5" x2="12" y2="12" stroke={color} strokeWidth="0.9" strokeLinecap="round" />
             <line x1="10" y1="11" x2="10" y2="13" stroke={color} strokeWidth="0.9" strokeLinecap="round" />
             <line x1="11.5" y1="11.5" x2="12.5" y2="11.5" stroke={color} strokeWidth="0.9" strokeLinecap="round" />
           </svg>
           <span style={{
-            color, opacity: 0.45,
-            fontSize: 'clamp(0.5rem, 0.65vw, 0.6rem)',
+            color, opacity: 0.65,
+            fontSize: 'clamp(0.65rem, 0.75vw, 0.72rem)',
             fontFamily: "'Pretendard Variable', sans-serif",
             letterSpacing: '0.22em', textTransform: 'uppercase' as const,
             transition: 'opacity 0.3s',
@@ -473,8 +473,8 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
         <El {...(!isOverlay && { onClick: () => window.open('https://x.com/4rgonautika', '_blank') })}
           className={isOverlay ? '' : 'cursor-pointer'}
           style={{
-            background: 'none', border: 'none', color: dim, opacity: 0.25,
-            fontSize: 'clamp(0.44rem, 0.55vw, 0.5rem)',
+            background: 'none', border: 'none', color: dim, opacity: 0.5,
+            fontSize: 'clamp(0.6rem, 0.65vw, 0.68rem)',
             fontFamily: "'Pretendard Variable', sans-serif",
             letterSpacing: '0.15em', textTransform: 'uppercase' as const,
           }}>Twitter</El>
@@ -485,12 +485,12 @@ function StageContent({ color, dim, router, hovered, onHover, onArchive, isOverl
         right: 'clamp(20px, 3.5vw, 40px)', top: 'clamp(12px, 2vh, 24px)',
         textAlign: 'right', maxWidth: 'clamp(150px, 18vw, 240px)',
       }}>
-        <p style={{ color: dim, opacity: 0.18,
-          fontSize: 'clamp(0.55rem, 0.7vw, 0.68rem)',
+        <p style={{ color: dim, opacity: 0.4,
+          fontSize: 'clamp(0.68rem, 0.78vw, 0.78rem)',
           fontFamily: "'Playfair Display', serif", fontStyle: 'italic', lineHeight: 1.5,
         }}>&ldquo;One must still have chaos in oneself to give birth to a dancing star.&rdquo;</p>
-        <p style={{ color: dim, opacity: 0.1,
-          fontSize: 'clamp(0.4rem, 0.45vw, 0.48rem)',
+        <p style={{ color: dim, opacity: 0.28,
+          fontSize: 'clamp(0.58rem, 0.55vw, 0.62rem)',
           fontFamily: "'Pretendard Variable', sans-serif",
           letterSpacing: '0.12em', marginTop: '2px',
         }}>NIETZSCHE</p>
@@ -614,7 +614,7 @@ export default function Home() {
 
       {/* Base text — white */}
       <div className="absolute inset-0 transition-opacity duration-[1.5s]" style={{ opacity: stageVisible ? 1 : 0 }}>
-        <StageContent color="rgba(235,235,235,0.88)" dim="rgba(235,235,235,0.3)"
+        <StageContent color="rgba(235,235,235,0.88)" dim="rgba(235,235,235,0.55)"
           router={router} hovered={hoveredIdx} onHover={setHoveredIdx}
           onArchive={isAdmin ? handleLogout : () => setShowLogin(true)} isAdmin={isAdmin}
           loggedUser={loggedUser} />
