@@ -364,40 +364,56 @@ export default function RecordPage() {
     }).finally(() => setLoading(false))
   }, [])
 
-  const handleRecordChange = (record: DialogueRecord) => {
-    setSelectedRecord(record)
+  const [pendingTRPG, setPendingTRPG] = useState<TRPGSession | null>(null)
+
+  // 잠금 안 된 첫 번째 섹션 찾기 (없으면 null)
+  const findFirstOpen = (sections: Section[]) =>
+    sections.find(s => !s.password || unlockedSections.has(s.id)) || null
+
+  // pending 상태 초기화
+  const clearPending = () => {
     setPendingSection(null)
+    setPendingTRPG(null)
+    setPasswordInput('')
+    setPasswordError(false)
+  }
+
+  const handleRecordChange = (record: DialogueRecord) => {
+    clearPending()
+    setSelectedRecord(record)
     const phase = record.phases?.[0] || null
     setSelectedPhase(phase)
-    const firstUnlocked = phase?.sections?.find(s => !s.password || unlockedSections.has(s.id)) || null
-    setSelectedSection(firstUnlocked)
+    setSelectedSection(phase ? findFirstOpen(phase.sections || []) : null)
   }
 
   const handlePhaseChange = (phase: Phase) => {
+    clearPending()
     setSelectedPhase(phase)
-    setSelectedSection(phase.sections?.[0] || null)
+    setSelectedSection(findFirstOpen(phase.sections || []))
   }
 
   const handleSectionChange = (section: Section) => {
     if (section.password && !unlockedSections.has(section.id)) {
+      setPendingTRPG(null)
       setPendingSection(section)
       setPasswordInput('')
       setPasswordError(false)
       return
     }
+    clearPending()
     setSelectedSection(section)
     dialogueScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const [pendingTRPG, setPendingTRPG] = useState<TRPGSession | null>(null)
-
   const handleTRPGSessionChange = (session: TRPGSession) => {
     if (session.password && !unlockedSections.has(session.id)) {
+      setPendingSection(null)
       setPendingTRPG(session)
       setPasswordInput('')
       setPasswordError(false)
       return
     }
+    clearPending()
     setSelectedTRPGSession(session)
   }
 
@@ -406,8 +422,7 @@ export default function RecordPage() {
       if (passwordInput === pendingSection.password) {
         setUnlockedSections(prev => { const next = new Set(Array.from(prev)); next.add(pendingSection.id); return next })
         setSelectedSection(pendingSection)
-        setPendingSection(null)
-        setPasswordInput('')
+        clearPending()
         dialogueScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
       } else {
         setPasswordError(true)
@@ -416,8 +431,7 @@ export default function RecordPage() {
       if (passwordInput === pendingTRPG.password) {
         setUnlockedSections(prev => { const next = new Set(Array.from(prev)); next.add(pendingTRPG.id); return next })
         setSelectedTRPGSession(pendingTRPG)
-        setPendingTRPG(null)
-        setPasswordInput('')
+        clearPending()
       } else {
         setPasswordError(true)
       }
