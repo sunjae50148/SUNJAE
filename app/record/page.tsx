@@ -348,12 +348,8 @@ export default function RecordPage() {
           if (first.phases?.length > 0) {
             setSelectedPhase(first.phases[0])
             if (first.phases[0].sections?.length > 0) {
-              const firstSection = first.phases[0].sections[0]
-              if (firstSection.password) {
-                setPendingSection(firstSection)
-              } else {
-                setSelectedSection(firstSection)
-              }
+              const firstUnlocked = first.phases[0].sections.find(s => !s.password)
+              setSelectedSection(firstUnlocked || null)
             }
           }
         }
@@ -361,11 +357,8 @@ export default function RecordPage() {
       if (Array.isArray(trpgData)) {
         setTrpgSessions(trpgData)
         if (trpgData.length > 0) {
-          if (trpgData[0].password) {
-            setPendingTRPG(trpgData[0])
-          } else {
-            setSelectedTRPGSession(trpgData[0])
-          }
+          const firstUnlocked = trpgData.find((s: any) => !s.password)
+          setSelectedTRPGSession(firstUnlocked || null)
         }
       }
     }).finally(() => setLoading(false))
@@ -373,17 +366,11 @@ export default function RecordPage() {
 
   const handleRecordChange = (record: DialogueRecord) => {
     setSelectedRecord(record)
+    setPendingSection(null)
     const phase = record.phases?.[0] || null
     setSelectedPhase(phase)
-    const firstSection = phase?.sections?.[0] || null
-    if (firstSection?.password && !unlockedSections.has(firstSection.id)) {
-      setPendingSection(firstSection)
-      setPasswordInput('')
-      setPasswordError(false)
-      setSelectedSection(null)
-    } else {
-      setSelectedSection(firstSection)
-    }
+    const firstUnlocked = phase?.sections?.find(s => !s.password || unlockedSections.has(s.id)) || null
+    setSelectedSection(firstUnlocked)
   }
 
   const handlePhaseChange = (phase: Phase) => {
