@@ -348,7 +348,7 @@ export default function RecordPage() {
           if (first.phases?.length > 0) {
             setSelectedPhase(first.phases[0])
             if (first.phases[0].sections?.length > 0) {
-              const firstUnlocked = first.phases[0].sections.find(s => !s.password)
+              const firstUnlocked = first.phases[0].sections.find((s: Section) => !s.password)
               setSelectedSection(firstUnlocked || null)
             }
           }
