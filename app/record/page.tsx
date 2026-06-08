@@ -380,7 +380,7 @@ export default function RecordPage() {
   const handlePasswordSubmit = () => {
     if (!pendingRecord) return
     if (passwordInput === pendingRecord.password) {
-      setUnlockedRecords(prev => new Set([...prev, pendingRecord.id]))
+      setUnlockedRecords(prev => { const next = new Set(Array.from(prev)); next.add(pendingRecord.id); return next })
       setSelectedRecord(pendingRecord)
       const phase = pendingRecord.phases?.[0] || null
       setSelectedPhase(phase)
