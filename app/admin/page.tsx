@@ -1970,14 +1970,30 @@ export default function AdminPage() {
           // TRPG 에디터
           editingTRPG ? (
             <>
-              <div className="h-16 border-b border-ink/10 flex items-center justify-between px-6 bg-bg-cream">
-                <input value={editingTRPG.title} onChange={(e) => setEditingTRPG({...editingTRPG, title: e.target.value})}
-                  className="bg-transparent text-lg font-bold text-ink focus:outline-none w-1/3" placeholder="세션 제목" />
-                <input value={editingTRPG.date || ''} onChange={(e) => setEditingTRPG({...editingTRPG, date: e.target.value})}
-                  className="bg-transparent text-sm text-ink/60 focus:outline-none w-32" placeholder="날짜 (YYYY.MM.DD)" />
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-[#8B1538]">{message}</span>
-                  <button onClick={handleSaveTRPG} className="bg-[#8B1538] hover:bg-[#A01840] text-white px-6 py-2 rounded font-bold">저장하기</button>
+              <div className="border-b border-ink/10 bg-bg-cream">
+                <div className="h-16 flex items-center justify-between px-6">
+                  <input value={editingTRPG.title} onChange={(e) => setEditingTRPG({...editingTRPG, title: e.target.value})}
+                    className="bg-transparent text-lg font-bold text-ink focus:outline-none w-1/3" placeholder="세션 제목" />
+                  <input value={editingTRPG.date || ''} onChange={(e) => setEditingTRPG({...editingTRPG, date: e.target.value})}
+                    className="bg-transparent text-sm text-ink/60 focus:outline-none w-32" placeholder="날짜 (YYYY.MM.DD)" />
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-[#8B1538]">{message}</span>
+                    <button onClick={handleSaveTRPG} className="bg-[#8B1538] hover:bg-[#A01840] text-white px-6 py-2 rounded font-bold">저장하기</button>
+                  </div>
+                </div>
+                <div className="px-6 pb-3 flex items-center gap-3">
+                  <span className="text-xs text-ink/50 font-semibold shrink-0">🔒 세션 비밀번호</span>
+                  <input
+                    type="text"
+                    placeholder="비밀번호 없음 (공개)"
+                    value={editingTRPG.password || ''}
+                    onChange={(e) => setEditingTRPG({...editingTRPG, password: e.target.value || undefined})}
+                    className="bg-white border border-ink/15 rounded px-3 py-1.5 text-sm text-ink focus:outline-none focus:border-[#8B1538] w-48"
+                  />
+                  {editingTRPG.password && (
+                    <button onClick={() => setEditingTRPG({...editingTRPG, password: undefined})}
+                      className="text-xs text-red-500 hover:text-red-700">해제</button>
+                  )}
                 </div>
               </div>
               

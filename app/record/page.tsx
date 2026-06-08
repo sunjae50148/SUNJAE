@@ -360,7 +360,13 @@ export default function RecordPage() {
       }
       if (Array.isArray(trpgData)) {
         setTrpgSessions(trpgData)
-        if (trpgData.length > 0) setSelectedTRPGSession(trpgData[0])
+        if (trpgData.length > 0) {
+          if (trpgData[0].password) {
+            setPendingTRPG(trpgData[0])
+          } else {
+            setSelectedTRPGSession(trpgData[0])
+          }
+        }
       }
     }).finally(() => setLoading(false))
   }, [])
@@ -396,16 +402,38 @@ export default function RecordPage() {
     dialogueScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handlePasswordSubmit = () => {
-    if (!pendingSection) return
-    if (passwordInput === pendingSection.password) {
-      setUnlockedSections(prev => { const next = new Set(Array.from(prev)); next.add(pendingSection.id); return next })
-      setSelectedSection(pendingSection)
-      setPendingSection(null)
+  const [pendingTRPG, setPendingTRPG] = useState<TRPGSession | null>(null)
+
+  const handleTRPGSessionChange = (session: TRPGSession) => {
+    if (session.password && !unlockedSections.has(session.id)) {
+      setPendingTRPG(session)
       setPasswordInput('')
-      dialogueScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-    } else {
-      setPasswordError(true)
+      setPasswordError(false)
+      return
+    }
+    setSelectedTRPGSession(session)
+  }
+
+  const handlePasswordSubmit = () => {
+    if (pendingSection) {
+      if (passwordInput === pendingSection.password) {
+        setUnlockedSections(prev => { const next = new Set(Array.from(prev)); next.add(pendingSection.id); return next })
+        setSelectedSection(pendingSection)
+        setPendingSection(null)
+        setPasswordInput('')
+        dialogueScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        setPasswordError(true)
+      }
+    } else if (pendingTRPG) {
+      if (passwordInput === pendingTRPG.password) {
+        setUnlockedSections(prev => { const next = new Set(Array.from(prev)); next.add(pendingTRPG.id); return next })
+        setSelectedTRPGSession(pendingTRPG)
+        setPendingTRPG(null)
+        setPasswordInput('')
+      } else {
+        setPasswordError(true)
+      }
     }
   }
 
@@ -442,7 +470,7 @@ export default function RecordPage() {
       <EdgeCurtain side="right" />
 
       {/* ═══ 비밀번호 모달 ═══ */}
-      {pendingSection && (
+      {(pendingSection || pendingTRPG) && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(4px)' }}>
           <div className="p-8 w-full max-w-xs" style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.95)' }}>
@@ -450,7 +478,7 @@ export default function RecordPage() {
               textAlign: 'center', marginBottom: '6px',
               color: 'rgba(255,255,255,0.85)', fontSize: '0.95rem',
               fontFamily: "'Playfair Display', serif", fontStyle: 'italic',
-            }}>{pendingSection.title}</h3>
+            }}>{pendingSection?.title || pendingTRPG?.title}</h3>
             <p style={{
               textAlign: 'center', marginBottom: '24px',
               color: 'rgba(255,255,255,0.3)', fontSize: '0.72rem',
@@ -480,7 +508,7 @@ export default function RecordPage() {
             )}
             <div className="flex gap-2 mt-3">
               <button
-                onClick={() => { setPendingSection(null); setPasswordInput('') }}
+                onClick={() => { setPendingSection(null); setPendingTRPG(null); setPasswordInput('') }}
                 style={{
                   flex: 1, padding: '10px', background: 'transparent', cursor: 'pointer',
                   border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)',
@@ -699,7 +727,7 @@ export default function RecordPage() {
                   {trpgSessions.map((session, i) => {
                     const isActive = selectedTRPGSession?.id === session.id
                     return (
-                      <button key={session.id} onClick={() => setSelectedTRPGSession(session)}
+                      <button key={session.id} onClick={() => handleTRPGSessionChange(session)}
                         className="group relative block w-full text-left py-3 transition-colors">
                         <span className="absolute left-0 top-1/2 -translate-y-1/2 transition-all" style={{
                           width: isActive ? '2px' : '0px', height: isActive ? '60%' : '0%',
@@ -717,6 +745,9 @@ export default function RecordPage() {
                           </span>
                           <div>
                             <span className={`heading-condensed text-[13px] leading-snug transition-all block ${isActive ? 'text-white/85' : 'text-white/30 group-hover:text-white/55'}`} style={{ fontStyle: 'italic' }}>
+                              {session.password && !unlockedSections.has(session.id) && (
+                                <span style={{ fontStyle: 'normal', marginRight: '4px', fontSize: '0.6rem' }}>🔒</span>
+                              )}
                               {session.title}
                             </span>
                             {session.date && <span className="text-white/15 text-[10px] mt-0.5 block">{session.date}</span>}

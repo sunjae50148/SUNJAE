@@ -75,6 +75,7 @@ export interface TRPGSession {
   lines: TRPGLine[]
   createdAt: string
   updatedAt: string
+  password?: string
 }
 
 function generateId(): string {
