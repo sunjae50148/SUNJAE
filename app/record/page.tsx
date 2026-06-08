@@ -326,8 +326,8 @@ export default function RecordPage() {
   const [galleryIndex, setGalleryIndex] = useState(0)
   const [showGallery, setShowGallery] = useState(false)
 
-  const [unlockedRecords, setUnlockedRecords] = useState<Set<string>>(new Set())
-  const [pendingRecord, setPendingRecord] = useState<DialogueRecord | null>(null)
+  const [unlockedSections, setUnlockedSections] = useState<Set<string>>(new Set())
+  const [pendingSection, setPendingSection] = useState<Section | null>(null)
   const [passwordInput, setPasswordInput] = useState('')
   const [passwordError, setPasswordError] = useState(false)
 
@@ -344,14 +344,15 @@ export default function RecordPage() {
         setRecords(recordsData)
         if (recordsData.length > 0) {
           const first = recordsData[0]
-          if (first.password) {
-            setPendingRecord(first)
-          } else {
-            setSelectedRecord(first)
-            if (first.phases?.length > 0) {
-              setSelectedPhase(first.phases[0])
-              if (first.phases[0].sections?.length > 0) {
-                setSelectedSection(first.phases[0].sections[0])
+          setSelectedRecord(first)
+          if (first.phases?.length > 0) {
+            setSelectedPhase(first.phases[0])
+            if (first.phases[0].sections?.length > 0) {
+              const firstSection = first.phases[0].sections[0]
+              if (firstSection.password) {
+                setPendingSection(firstSection)
+              } else {
+                setSelectedSection(firstSection)
               }
             }
           }
@@ -365,30 +366,17 @@ export default function RecordPage() {
   }, [])
 
   const handleRecordChange = (record: DialogueRecord) => {
-    if (record.password && !unlockedRecords.has(record.id)) {
-      setPendingRecord(record)
-      setPasswordInput('')
-      setPasswordError(false)
-      return
-    }
     setSelectedRecord(record)
     const phase = record.phases?.[0] || null
     setSelectedPhase(phase)
-    setSelectedSection(phase?.sections?.[0] || null)
-  }
-
-  const handlePasswordSubmit = () => {
-    if (!pendingRecord) return
-    if (passwordInput === pendingRecord.password) {
-      setUnlockedRecords(prev => { const next = new Set(Array.from(prev)); next.add(pendingRecord.id); return next })
-      setSelectedRecord(pendingRecord)
-      const phase = pendingRecord.phases?.[0] || null
-      setSelectedPhase(phase)
-      setSelectedSection(phase?.sections?.[0] || null)
-      setPendingRecord(null)
+    const firstSection = phase?.sections?.[0] || null
+    if (firstSection?.password && !unlockedSections.has(firstSection.id)) {
+      setPendingSection(firstSection)
       setPasswordInput('')
+      setPasswordError(false)
+      setSelectedSection(null)
     } else {
-      setPasswordError(true)
+      setSelectedSection(firstSection)
     }
   }
 
@@ -398,8 +386,27 @@ export default function RecordPage() {
   }
 
   const handleSectionChange = (section: Section) => {
+    if (section.password && !unlockedSections.has(section.id)) {
+      setPendingSection(section)
+      setPasswordInput('')
+      setPasswordError(false)
+      return
+    }
     setSelectedSection(section)
     dialogueScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handlePasswordSubmit = () => {
+    if (!pendingSection) return
+    if (passwordInput === pendingSection.password) {
+      setUnlockedSections(prev => { const next = new Set(Array.from(prev)); next.add(pendingSection.id); return next })
+      setSelectedSection(pendingSection)
+      setPendingSection(null)
+      setPasswordInput('')
+      dialogueScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      setPasswordError(true)
+    }
   }
 
   const handleImageClick = (lines: DialogueLine[] | TRPGLine[], lineIndex: number, imageIndex: number) => {
@@ -435,7 +442,7 @@ export default function RecordPage() {
       <EdgeCurtain side="right" />
 
       {/* ═══ 비밀번호 모달 ═══ */}
-      {pendingRecord && (
+      {pendingSection && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(4px)' }}>
           <div className="p-8 w-full max-w-xs" style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.95)' }}>
@@ -443,7 +450,7 @@ export default function RecordPage() {
               textAlign: 'center', marginBottom: '6px',
               color: 'rgba(255,255,255,0.85)', fontSize: '0.95rem',
               fontFamily: "'Playfair Display', serif", fontStyle: 'italic',
-            }}>{pendingRecord.title}</h3>
+            }}>{pendingSection.title}</h3>
             <p style={{
               textAlign: 'center', marginBottom: '24px',
               color: 'rgba(255,255,255,0.3)', fontSize: '0.72rem',
@@ -473,7 +480,7 @@ export default function RecordPage() {
             )}
             <div className="flex gap-2 mt-3">
               <button
-                onClick={() => { setPendingRecord(null); setPasswordInput('') }}
+                onClick={() => { setPendingSection(null); setPasswordInput('') }}
                 style={{
                   flex: 1, padding: '10px', background: 'transparent', cursor: 'pointer',
                   border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)',
@@ -607,11 +614,8 @@ export default function RecordPage() {
               <div className="flex flex-wrap gap-2 mb-4">
                 {records.map((r) => (
                   <button key={r.id} onClick={() => handleRecordChange(r)}
-                    className="heading-condensed text-xs transition-colors flex items-center gap-1"
+                    className="heading-condensed text-xs transition-colors"
                     style={{ fontStyle: 'italic', color: selectedRecord?.id === r.id ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)' }}>
-                    {r.password && !unlockedRecords.has(r.id) && (
-                      <span style={{ fontSize: '0.65rem', fontStyle: 'normal' }}>🔒</span>
-                    )}
                     {r.title}
                   </button>
                 ))}
@@ -674,6 +678,9 @@ export default function RecordPage() {
                             {`Sc.${String(i + 1).padStart(2, '0')}`}
                           </span>
                           <span className={`heading-condensed text-[13px] leading-snug transition-all ${isActive ? 'text-white/85' : 'text-white/30 group-hover:text-white/55'}`} style={{ fontStyle: 'italic' }}>
+                            {section.password && !unlockedSections.has(section.id) && (
+                              <span style={{ fontStyle: 'normal', marginRight: '4px', fontSize: '0.6rem' }}>🔒</span>
+                            )}
                             {section.title}
                           </span>
                         </div>

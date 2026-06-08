@@ -12,6 +12,7 @@ export interface Section {
   lines: DialogueLine[]
   manonAvatar?: string
   dylanAvatar?: string
+  password?: string
 }
 
 export interface Phase {

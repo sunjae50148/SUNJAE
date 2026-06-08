@@ -1762,28 +1762,12 @@ export default function AdminPage() {
           // 역극 에디터
           editingRecord ? (
             <>
-              <div className="border-b border-ink/10 bg-bg-cream">
-                <div className="h-16 flex items-center justify-between px-6">
-                  <input value={editingRecord.title} onChange={(e) => setEditingRecord({...editingRecord, title: e.target.value})}
-                    className="bg-transparent text-lg font-bold text-ink focus:outline-none w-1/2" />
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-[#8B1538]">{message}</span>
-                    <button onClick={handleSaveRecord} className="bg-[#8B1538] hover:bg-[#A01840] text-white px-6 py-2 rounded font-bold">저장하기</button>
-                  </div>
-                </div>
-                <div className="px-6 pb-3 flex items-center gap-3">
-                  <span className="text-xs text-ink/50 font-semibold">🔒 게시물 비밀번호</span>
-                  <input
-                    type="text"
-                    placeholder="비밀번호 없음 (공개)"
-                    value={editingRecord.password || ''}
-                    onChange={(e) => setEditingRecord({...editingRecord, password: e.target.value || undefined})}
-                    className="bg-white border border-ink/15 rounded px-3 py-1.5 text-sm text-ink focus:outline-none focus:border-[#8B1538] w-48"
-                  />
-                  {editingRecord.password && (
-                    <button onClick={() => setEditingRecord({...editingRecord, password: undefined})}
-                      className="text-xs text-red-500 hover:text-red-700">해제</button>
-                  )}
+              <div className="h-16 border-b border-ink/10 flex items-center justify-between px-6 bg-bg-cream">
+                <input value={editingRecord.title} onChange={(e) => setEditingRecord({...editingRecord, title: e.target.value})}
+                  className="bg-transparent text-lg font-bold text-ink focus:outline-none w-1/2" />
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-[#8B1538]">{message}</span>
+                  <button onClick={handleSaveRecord} className="bg-[#8B1538] hover:bg-[#A01840] text-white px-6 py-2 rounded font-bold">저장하기</button>
                 </div>
               </div>
               
@@ -1881,9 +1865,38 @@ export default function AdminPage() {
                   <div className="max-w-3xl mx-auto pb-20">
                     {/* 대화 아바타 설정 (섹션별) */}
                     <div className="mb-6 pb-4 border-b border-ink/10">
-                      <h2 className="text-xl font-bold text-ink/80 mb-4">
+                      <h2 className="text-xl font-bold text-ink/80 mb-3">
                         {editingRecord.phases[selectedPhaseIdx]?.name} — {editingRecord.phases[selectedPhaseIdx]?.sections[selectedSectionIdx]?.title}
                       </h2>
+                      {/* 섹션별 비밀번호 */}
+                      {(() => {
+                        const sec = editingRecord.phases[selectedPhaseIdx]?.sections[selectedSectionIdx]
+                        if (!sec) return null
+                        return (
+                          <div className="flex items-center gap-3 mb-4 p-3 rounded bg-ink/[0.03] border border-ink/8">
+                            <span className="text-xs text-ink/50 font-semibold shrink-0">🔒 챕터 비밀번호</span>
+                            <input
+                              type="text"
+                              placeholder="비밀번호 없음 (공개)"
+                              value={sec.password || ''}
+                              onChange={(e) => {
+                                const r = {...editingRecord}
+                                r.phases[selectedPhaseIdx].sections[selectedSectionIdx] = { ...sec, password: e.target.value || undefined }
+                                setEditingRecord(r)
+                              }}
+                              className="bg-white border border-ink/15 rounded px-3 py-1.5 text-sm text-ink focus:outline-none focus:border-[#8B1538] w-48"
+                            />
+                            {sec.password && (
+                              <button onClick={() => {
+                                const r = {...editingRecord}
+                                r.phases[selectedPhaseIdx].sections[selectedSectionIdx] = { ...sec, password: undefined }
+                                setEditingRecord(r)
+                              }}
+                                className="text-xs text-red-500 hover:text-red-700">해제</button>
+                            )}
+                          </div>
+                        )
+                      })()}
                       {(() => {
                         const sec = editingRecord.phases[selectedPhaseIdx]?.sections[selectedSectionIdx]
                         if (!sec) return null
