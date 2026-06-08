@@ -469,64 +469,6 @@ export default function RecordPage() {
       <EdgeCurtain side="left" />
       <EdgeCurtain side="right" />
 
-      {/* ═══ 비밀번호 모달 ═══ */}
-      {(pendingSection || pendingTRPG) && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(4px)' }}>
-          <div className="p-8 w-full max-w-xs" style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.95)' }}>
-            <h3 style={{
-              textAlign: 'center', marginBottom: '6px',
-              color: 'rgba(255,255,255,0.85)', fontSize: '0.95rem',
-              fontFamily: "'Playfair Display', serif", fontStyle: 'italic',
-            }}>{pendingSection?.title || pendingTRPG?.title}</h3>
-            <p style={{
-              textAlign: 'center', marginBottom: '24px',
-              color: 'rgba(255,255,255,0.3)', fontSize: '0.72rem',
-              fontFamily: "'Pretendard Variable', sans-serif", letterSpacing: '0.15em',
-            }}>비밀번호를 입력하세요</p>
-            <input
-              type="password"
-              placeholder="Password"
-              value={passwordInput}
-              onChange={e => { setPasswordInput(e.target.value); setPasswordError(false) }}
-              onKeyDown={e => { if (e.key === 'Enter') handlePasswordSubmit() }}
-              autoFocus
-              style={{
-                width: '100%', background: 'transparent',
-                border: `1px solid ${passwordError ? 'rgba(255,100,100,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                padding: '12px 16px', color: 'white', fontSize: '0.85rem',
-                textAlign: 'center', outline: 'none',
-                fontFamily: "'Pretendard Variable', sans-serif",
-                transition: 'border-color 0.2s',
-              }}
-            />
-            {passwordError && (
-              <p style={{ color: 'rgba(255,100,100,0.7)', fontSize: '0.72rem', textAlign: 'center', marginTop: '8px',
-                fontFamily: "'Pretendard Variable', sans-serif" }}>
-                비밀번호가 틀렸습니다
-              </p>
-            )}
-            <div className="flex gap-2 mt-3">
-              <button
-                onClick={() => { setPendingSection(null); setPendingTRPG(null); setPasswordInput('') }}
-                style={{
-                  flex: 1, padding: '10px', background: 'transparent', cursor: 'pointer',
-                  border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)',
-                  fontSize: '0.78rem', fontFamily: "'Pretendard Variable', sans-serif", letterSpacing: '0.1em',
-                }}>취소</button>
-              <button
-                onClick={handlePasswordSubmit}
-                style={{
-                  flex: 1, padding: '10px', background: 'transparent', cursor: 'pointer',
-                  border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)',
-                  fontSize: '0.78rem', fontFamily: "'Pretendard Variable', sans-serif", letterSpacing: '0.1em',
-                  transition: 'all 0.2s',
-                }}>확인</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ═══ Subtle motifs in corners ═══ */}
       <div className="fixed pointer-events-none z-[2]" style={{ top: '8%', right: '10%' }}>
         {activeTab === 'roleplay'
@@ -837,7 +779,60 @@ export default function RecordPage() {
 
           {/* 대화 본문 (스크롤) */}
           <div ref={dialogueScrollRef} className={`relative flex-1 overflow-y-auto min-h-0 px-10 md:px-16 lg:px-20 py-8 ${mounted ? 'animate-fade-slide-up stagger-3' : 'opacity-0'}`}>
-            {loading ? (
+            {(pendingSection || pendingTRPG) ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="w-full max-w-xs text-center">
+                  <h3 style={{
+                    marginBottom: '6px',
+                    color: 'rgba(255,255,255,0.85)', fontSize: '0.95rem',
+                    fontFamily: "'Playfair Display', serif", fontStyle: 'italic',
+                  }}>{pendingSection?.title || pendingTRPG?.title}</h3>
+                  <p style={{
+                    marginBottom: '24px',
+                    color: 'rgba(255,255,255,0.3)', fontSize: '0.72rem',
+                    fontFamily: "'Pretendard Variable', sans-serif", letterSpacing: '0.15em',
+                  }}>비밀번호를 입력하세요</p>
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={passwordInput}
+                    onChange={e => { setPasswordInput(e.target.value); setPasswordError(false) }}
+                    onKeyDown={e => { if (e.key === 'Enter') handlePasswordSubmit() }}
+                    autoFocus
+                    style={{
+                      width: '100%', background: 'transparent',
+                      border: `1px solid ${passwordError ? 'rgba(255,100,100,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                      padding: '12px 16px', color: 'white', fontSize: '0.85rem',
+                      textAlign: 'center', outline: 'none',
+                      fontFamily: "'Pretendard Variable', sans-serif",
+                      transition: 'border-color 0.2s',
+                    }}
+                  />
+                  {passwordError && (
+                    <p style={{ color: 'rgba(255,100,100,0.7)', fontSize: '0.72rem', marginTop: '8px',
+                      fontFamily: "'Pretendard Variable', sans-serif" }}>
+                      비밀번호가 틀렸습니다
+                    </p>
+                  )}
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => { setPendingSection(null); setPendingTRPG(null); setPasswordInput(''); setPasswordError(false) }}
+                      style={{
+                        flex: 1, padding: '10px', background: 'transparent', cursor: 'pointer',
+                        border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)',
+                        fontSize: '0.78rem', fontFamily: "'Pretendard Variable', sans-serif", letterSpacing: '0.1em',
+                      }}>취소</button>
+                    <button
+                      onClick={handlePasswordSubmit}
+                      style={{
+                        flex: 1, padding: '10px', background: 'transparent', cursor: 'pointer',
+                        border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)',
+                        fontSize: '0.78rem', fontFamily: "'Pretendard Variable', sans-serif", letterSpacing: '0.1em',
+                      }}>확인</button>
+                  </div>
+                </div>
+              </div>
+            ) : loading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="w-6 h-6 border border-white/10 border-t-white/40 rounded-full animate-spin" />
               </div>
