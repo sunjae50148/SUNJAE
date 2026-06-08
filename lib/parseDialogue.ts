@@ -26,6 +26,7 @@ export interface DialogueRecord {
   phases: Phase[]
   createdAt: string
   updatedAt: string
+  password?: string
 }
 
 // --- TRPG 타입 정의 ---

@@ -326,6 +326,11 @@ export default function RecordPage() {
   const [galleryIndex, setGalleryIndex] = useState(0)
   const [showGallery, setShowGallery] = useState(false)
 
+  const [unlockedRecords, setUnlockedRecords] = useState<Set<string>>(new Set())
+  const [pendingRecord, setPendingRecord] = useState<DialogueRecord | null>(null)
+  const [passwordInput, setPasswordInput] = useState('')
+  const [passwordError, setPasswordError] = useState(false)
+
   const dialogueScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setMounted(true) }, [])
@@ -338,11 +343,16 @@ export default function RecordPage() {
       if (Array.isArray(recordsData)) {
         setRecords(recordsData)
         if (recordsData.length > 0) {
-          setSelectedRecord(recordsData[0])
-          if (recordsData[0].phases?.length > 0) {
-            setSelectedPhase(recordsData[0].phases[0])
-            if (recordsData[0].phases[0].sections?.length > 0) {
-              setSelectedSection(recordsData[0].phases[0].sections[0])
+          const first = recordsData[0]
+          if (first.password) {
+            setPendingRecord(first)
+          } else {
+            setSelectedRecord(first)
+            if (first.phases?.length > 0) {
+              setSelectedPhase(first.phases[0])
+              if (first.phases[0].sections?.length > 0) {
+                setSelectedSection(first.phases[0].sections[0])
+              }
             }
           }
         }
@@ -355,10 +365,31 @@ export default function RecordPage() {
   }, [])
 
   const handleRecordChange = (record: DialogueRecord) => {
+    if (record.password && !unlockedRecords.has(record.id)) {
+      setPendingRecord(record)
+      setPasswordInput('')
+      setPasswordError(false)
+      return
+    }
     setSelectedRecord(record)
     const phase = record.phases?.[0] || null
     setSelectedPhase(phase)
     setSelectedSection(phase?.sections?.[0] || null)
+  }
+
+  const handlePasswordSubmit = () => {
+    if (!pendingRecord) return
+    if (passwordInput === pendingRecord.password) {
+      setUnlockedRecords(prev => new Set([...prev, pendingRecord.id]))
+      setSelectedRecord(pendingRecord)
+      const phase = pendingRecord.phases?.[0] || null
+      setSelectedPhase(phase)
+      setSelectedSection(phase?.sections?.[0] || null)
+      setPendingRecord(null)
+      setPasswordInput('')
+    } else {
+      setPasswordError(true)
+    }
   }
 
   const handlePhaseChange = (phase: Phase) => {
@@ -402,6 +433,64 @@ export default function RecordPage() {
       <SketchyFilter />
       <EdgeCurtain side="left" />
       <EdgeCurtain side="right" />
+
+      {/* ═══ 비밀번호 모달 ═══ */}
+      {pendingRecord && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(4px)' }}>
+          <div className="p-8 w-full max-w-xs" style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.95)' }}>
+            <h3 style={{
+              textAlign: 'center', marginBottom: '6px',
+              color: 'rgba(255,255,255,0.85)', fontSize: '0.95rem',
+              fontFamily: "'Playfair Display', serif", fontStyle: 'italic',
+            }}>{pendingRecord.title}</h3>
+            <p style={{
+              textAlign: 'center', marginBottom: '24px',
+              color: 'rgba(255,255,255,0.3)', fontSize: '0.72rem',
+              fontFamily: "'Pretendard Variable', sans-serif", letterSpacing: '0.15em',
+            }}>비밀번호를 입력하세요</p>
+            <input
+              type="password"
+              placeholder="Password"
+              value={passwordInput}
+              onChange={e => { setPasswordInput(e.target.value); setPasswordError(false) }}
+              onKeyDown={e => { if (e.key === 'Enter') handlePasswordSubmit() }}
+              autoFocus
+              style={{
+                width: '100%', background: 'transparent',
+                border: `1px solid ${passwordError ? 'rgba(255,100,100,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                padding: '12px 16px', color: 'white', fontSize: '0.85rem',
+                textAlign: 'center', outline: 'none',
+                fontFamily: "'Pretendard Variable', sans-serif",
+                transition: 'border-color 0.2s',
+              }}
+            />
+            {passwordError && (
+              <p style={{ color: 'rgba(255,100,100,0.7)', fontSize: '0.72rem', textAlign: 'center', marginTop: '8px',
+                fontFamily: "'Pretendard Variable', sans-serif" }}>
+                비밀번호가 틀렸습니다
+              </p>
+            )}
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => { setPendingRecord(null); setPasswordInput('') }}
+                style={{
+                  flex: 1, padding: '10px', background: 'transparent', cursor: 'pointer',
+                  border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)',
+                  fontSize: '0.78rem', fontFamily: "'Pretendard Variable', sans-serif", letterSpacing: '0.1em',
+                }}>취소</button>
+              <button
+                onClick={handlePasswordSubmit}
+                style={{
+                  flex: 1, padding: '10px', background: 'transparent', cursor: 'pointer',
+                  border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)',
+                  fontSize: '0.78rem', fontFamily: "'Pretendard Variable', sans-serif", letterSpacing: '0.1em',
+                  transition: 'all 0.2s',
+                }}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ═══ Subtle motifs in corners ═══ */}
       <div className="fixed pointer-events-none z-[2]" style={{ top: '8%', right: '10%' }}>
@@ -518,8 +607,11 @@ export default function RecordPage() {
               <div className="flex flex-wrap gap-2 mb-4">
                 {records.map((r) => (
                   <button key={r.id} onClick={() => handleRecordChange(r)}
-                    className="heading-condensed text-xs transition-colors"
+                    className="heading-condensed text-xs transition-colors flex items-center gap-1"
                     style={{ fontStyle: 'italic', color: selectedRecord?.id === r.id ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)' }}>
+                    {r.password && !unlockedRecords.has(r.id) && (
+                      <span style={{ fontSize: '0.65rem', fontStyle: 'normal' }}>🔒</span>
+                    )}
                     {r.title}
                   </button>
                 ))}
