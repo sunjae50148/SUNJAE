@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import EdgeCurtain from '@/components/EdgeCurtain'
-import SketchyFilter from '@/components/SketchyFilter'
+import { ROUTE_DIRECTION_KEY, SKIP_HOME_BOOT_KEY, SunjaeChrome, type RouteDirection } from '@/components/SunjaeChrome'
 import type { AU, AUData } from '@/app/api/au/route'
 
 const MANON_COLOR = '#D9809A'
@@ -14,8 +13,19 @@ export default function AUPage() {
   const [mounted, setMounted] = useState(false)
   const [aus, setAUs] = useState<AU[]>([])
   const [loading, setLoading] = useState(true)
+  const [routeDirection, setRouteDirection] = useState<RouteDirection>('prev')
+  const [routeReady, setRouteReady] = useState(false)
+  const [routeLeaving, setRouteLeaving] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    const stored = sessionStorage?.getItem(ROUTE_DIRECTION_KEY)
+    if (stored === 'prev' || stored === 'next') setRouteDirection(stored)
+    sessionStorage?.removeItem(ROUTE_DIRECTION_KEY)
+    const raf = requestAnimationFrame(() => setRouteReady(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
 
   useEffect(() => {
     fetch('/api/au')
@@ -25,55 +35,52 @@ export default function AUPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  return (
-    <div className="fixed inset-0 z-[60] bg-black overflow-hidden text-white">
-      <SketchyFilter />
-      <EdgeCurtain side="left" />
-      <EdgeCurtain side="right" />
+  const navigateInterface = (href: string, direction: RouteDirection) => {
+    sessionStorage?.setItem(ROUTE_DIRECTION_KEY, direction)
+    if (href === '/') sessionStorage?.setItem(SKIP_HOME_BOOT_KEY, 'true')
+    setRouteDirection(direction)
+    setRouteLeaving(true)
+    setTimeout(() => router.push(href), 520)
+  }
 
-      {/* Header */}
-      <div className={`fixed top-0 left-0 z-[10] right-0 flex items-center justify-between ${mounted ? 'animate-fade-slide-up' : 'opacity-0'}`}
-        style={{ padding: 'clamp(28px, 3vw, 44px) clamp(40px, 6vw, 80px) 0' }}>
-        <button onClick={() => router.push('/')}
-          className="label-caps text-white/40 hover:text-white/80 transition-colors"
-          style={{ fontSize: '0.78rem', letterSpacing: '0.25em' }}>
-          ← BACK
-        </button>
-        <div className="flex items-baseline gap-2">
-          <span className="label-caps text-white/25" style={{ fontSize: '0.75rem', letterSpacing: '0.3em' }}>UNIVERSES</span>
-          <span className="text-white/15">·</span>
-          <span className="heading-condensed text-white/40" style={{ fontStyle: 'italic', fontSize: '0.88rem' }}>
-            Alternate Worlds
-          </span>
-        </div>
-      </div>
+  return (
+    <div className="fixed inset-0 z-[60] bg-[#050a0d] overflow-hidden text-white">
+      <SunjaeChrome
+        interfaceLabel="UNIVERSE_INTERFACE"
+        previousHref="/timeline"
+        nextHref="/"
+        onNavigate={navigateInterface}
+        onAccess={() => navigateInterface('/', 'prev')}
+      />
 
       {/* Scrollable card area — inside curtains */}
-      <div className="absolute inset-0 overflow-y-auto" style={{
-        paddingTop: 'clamp(72px, 9vw, 110px)',
-        paddingBottom: 'clamp(32px, 4vh, 60px)',
-        paddingLeft: '8%',
-        paddingRight: '8%',
-        scrollbarWidth: 'thin',
-        scrollbarColor: 'rgba(255,255,255,0.08) transparent',
-      }}>
-        {loading ? (
-          <div className="flex items-center justify-center h-40">
-            <div className="w-6 h-6 border border-white/10 border-t-white/40 rounded-full animate-spin" />
-          </div>
-        ) : aus.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 420px), 1fr))',
-            gap: 'clamp(16px, 2vw, 28px)',
-          }}>
-            {aus.map((au, idx) => (
-              <AUCard key={au.id} au={au} idx={idx} />
-            ))}
-          </div>
-        )}
+      <div className={`absolute inset-0 sf-route-slide sf-route-${routeDirection} ${routeReady ? 'sf-route-slide-ready' : ''} ${routeLeaving ? 'sf-route-slide-leaving' : ''}`}>
+        <div className="absolute inset-0 overflow-y-auto" style={{
+          paddingTop: 'clamp(72px, 9vw, 110px)',
+          paddingBottom: 'clamp(54px, 6vh, 76px)',
+          paddingLeft: '8%',
+          paddingRight: '8%',
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(0,255,204,0.18) transparent',
+        }}>
+          {loading ? (
+            <div className="flex items-center justify-center h-40">
+              <div className="w-6 h-6 border border-white/10 border-t-white/40 rounded-full animate-spin" />
+            </div>
+          ) : aus.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 420px), 1fr))',
+              gap: 'clamp(16px, 2vw, 28px)',
+            }}>
+              {aus.map((au, idx) => (
+                <AUCard key={au.id} au={au} idx={idx} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

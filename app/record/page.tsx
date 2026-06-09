@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { DialogueRecord, Phase, Section, DialogueLine, TRPGSession, TRPGLine, TRPGCharacter } from '@/lib/parseDialogue'
-import SketchyFilter from '@/components/SketchyFilter'
-import EdgeCurtain from '@/components/EdgeCurtain'
+import { ROUTE_DIRECTION_KEY, SKIP_HOME_BOOT_KEY, SunjaeChrome, type RouteDirection } from '@/components/SunjaeChrome'
 import { BalletRibbon, MagicSparkle } from '@/components/StageMotifs'
 
 // ═══════════════════════════════════════
@@ -309,6 +309,7 @@ const menuItems = [
 // 메인 Record 페이지
 // ═══════════════════════════════════════
 export default function RecordPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'roleplay' | 'trpg'>('roleplay')
   const [records, setRecords] = useState<DialogueRecord[]>([])
   const [selectedRecord, setSelectedRecord] = useState<DialogueRecord | null>(null)
@@ -321,6 +322,9 @@ export default function RecordPage() {
   const [loading, setLoading] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [routeDirection, setRouteDirection] = useState<RouteDirection>('next')
+  const [routeReady, setRouteReady] = useState(false)
+  const [routeLeaving, setRouteLeaving] = useState(false)
 
   const [galleryImages, setGalleryImages] = useState<{ src: string; speaker?: string }[]>([])
   const [galleryIndex, setGalleryIndex] = useState(0)
@@ -334,6 +338,14 @@ export default function RecordPage() {
   const dialogueScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    const stored = sessionStorage?.getItem(ROUTE_DIRECTION_KEY)
+    if (stored === 'prev' || stored === 'next') setRouteDirection(stored)
+    sessionStorage?.removeItem(ROUTE_DIRECTION_KEY)
+    const raf = requestAnimationFrame(() => setRouteReady(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
 
   useEffect(() => {
     Promise.all([
@@ -456,6 +468,14 @@ export default function RecordPage() {
     setShowGallery(true)
   }
 
+  const navigateInterface = (href: string, direction: RouteDirection) => {
+    sessionStorage?.setItem(ROUTE_DIRECTION_KEY, direction)
+    if (href === '/') sessionStorage?.setItem(SKIP_HOME_BOOT_KEY, 'true')
+    setRouteDirection(direction)
+    setRouteLeaving(true)
+    setTimeout(() => router.push(href), 520)
+  }
+
   // 현재 표시할 콘텐츠
   const currentSectionTitle = activeTab === 'roleplay'
     ? selectedSection?.title || ''
@@ -465,10 +485,16 @@ export default function RecordPage() {
   const TRPG_ACCENT = '#C8C8C8' // Dylan — grayscale
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black overflow-hidden text-white">
-      <SketchyFilter />
-      <EdgeCurtain side="left" />
-      <EdgeCurtain side="right" />
+    <div className="fixed inset-0 z-[60] bg-[#050a0d] overflow-hidden text-white">
+      <SunjaeChrome
+        interfaceLabel="RECORD_INTERFACE"
+        previousHref="/character"
+        nextHref="/timeline"
+        onNavigate={navigateInterface}
+        onAccess={() => navigateInterface('/', 'prev')}
+      />
+
+      <div className={`absolute inset-0 sf-route-slide sf-route-${routeDirection} ${routeReady ? 'sf-route-slide-ready' : ''} ${routeLeaving ? 'sf-route-slide-leaving' : ''}`}>
 
       {/* ═══ Subtle motifs in corners ═══ */}
       <div className="fixed pointer-events-none z-[2]" style={{ top: '8%', right: '10%' }}>
@@ -481,11 +507,6 @@ export default function RecordPage() {
           ? <MagicSparkle opacity={0.1} size={0.9} count={4} />
           : <BalletRibbon opacity={0.06} size={1} />}
       </div>
-
-      {/* ═══ Sketchy frame lines ═══ */}
-      <div className="fixed pointer-events-none z-[3] sketch-jitter-line" style={{ top: 'clamp(28px, 3vw, 48px)', left: '7%', right: '7%', height: '1px', background: 'rgba(255,255,255,0.12)', filter: 'url(#sketchy)' }} />
-      <div className="fixed pointer-events-none z-[3] sketch-jitter-line" style={{ bottom: 'clamp(28px, 3vw, 48px)', left: '7%', right: '7%', height: '1px', background: 'rgba(255,255,255,0.12)', filter: 'url(#sketchy)' }} />
-      <div className="fixed pointer-events-none z-[3] sketch-jitter-line" style={{ left: 'clamp(220px, 24vw, 300px)', top: 0, bottom: 0, width: '1px', background: 'rgba(255,255,255,0.15)', filter: 'url(#sketchy)' }} />
 
       {/* ═══ 햄버거 메뉴 버튼 ═══ */}
       <button
@@ -532,20 +553,16 @@ export default function RecordPage() {
       )}
 
       {/* ═══ 메인 레이아웃 ═══ */}
-      <div className="h-full flex relative z-[10]">
+      <div className="sf-record-stage">
 
         {/* ═══ 왼쪽: 목차 사이드바 ═══ */}
-        <div className="shrink-0 h-full flex flex-col overflow-hidden relative" style={{
-          width: 'clamp(220px, 24vw, 300px)',
-          paddingLeft: '7%',
-          backgroundColor: 'rgba(0,0,0,0.5)',
-        }}>
+        <div className="sf-record-sidebar sf-window">
 
           {/* 상단 */}
-          <div className="px-7 pb-5" style={{ paddingTop: 'clamp(40px, 5vw, 64px)' }}>
+          <div className="sf-record-sidebar-head">
 
             {/* CHAPTER 라벨 */}
-            <div className={`mb-6 ${mounted ? 'animate-fade-slide-up' : 'opacity-0'}`}>
+            <div className={`sf-record-chapter ${mounted ? 'animate-fade-slide-up' : 'opacity-0'}`}>
               <span className="label-caps text-white/20 block" style={{ fontSize: '0.45rem', letterSpacing: '0.25em' }}>
                 CHAPTER · III
               </span>
@@ -561,31 +578,32 @@ export default function RecordPage() {
             </div>
 
             {/* 가는 구분선 */}
-            <div className="sketch-jitter-line h-px mb-5" style={{ background: 'rgba(255,255,255,0.1)', filter: 'url(#sketchy)' }} />
+            <div className="sf-record-divider" />
 
             {/* 탭 셀렉터 — Act I / Act II 느낌 */}
-            <div className={`flex items-center gap-4 mb-5 ${mounted ? 'animate-fade-slide-up stagger-1' : 'opacity-0'}`}>
-              <button onClick={() => setActiveTab('roleplay')} className="group flex flex-col items-start transition-all">
-                <span className="label-caps" style={{ fontSize: '0.4rem', letterSpacing: '0.2em', color: activeTab === 'roleplay' ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)' }}>ACT I</span>
-                <span className="heading-condensed text-sm mt-0.5" style={{ fontStyle: 'italic', color: activeTab === 'roleplay' ? ACCENT : 'rgba(255,255,255,0.2)', transition: 'color 0.3s' }}>
+            <div className={`sf-record-mode-switch ${mounted ? 'animate-fade-slide-up stagger-1' : 'opacity-0'}`}>
+              <button onClick={() => setActiveTab('roleplay')} className={`sf-record-mode ${activeTab === 'roleplay' ? 'is-active' : ''}`}>
+                <span>ACT I</span>
+                <strong>
                   Roleplay
-                </span>
+                </strong>
+                <i>{String(records.length).padStart(2, '0')} ARCHIVES</i>
               </button>
-              <span className="text-white/10 text-xs select-none mt-3">·</span>
-              <button onClick={() => setActiveTab('trpg')} className="group flex flex-col items-start transition-all">
-                <span className="label-caps" style={{ fontSize: '0.4rem', letterSpacing: '0.2em', color: activeTab === 'trpg' ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)' }}>ACT II</span>
-                <span className="heading-condensed text-sm mt-0.5" style={{ fontStyle: 'italic', color: activeTab === 'trpg' ? TRPG_ACCENT : 'rgba(255,255,255,0.2)', transition: 'color 0.3s' }}>
+              <button onClick={() => setActiveTab('trpg')} className={`sf-record-mode ${activeTab === 'trpg' ? 'is-active is-trpg' : ''}`}>
+                <span>ACT II</span>
+                <strong>
                   TRPG
-                </span>
+                </strong>
+                <i>{String(trpgSessions.length).padStart(2, '0')} SESSIONS</i>
               </button>
             </div>
 
             {/* 레코드 선택 (여러 개일 때) */}
             {activeTab === 'roleplay' && records.length > 1 && (
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="sf-record-archive-select">
                 {records.map((r) => (
                   <button key={r.id} onClick={() => handleRecordChange(r)}
-                    className="heading-condensed text-xs transition-colors"
+                    className={`sf-record-pill ${selectedRecord?.id === r.id ? 'is-active' : ''}`}
                     style={{ fontStyle: 'italic', color: selectedRecord?.id === r.id ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)' }}>
                     {r.title}
                   </button>
@@ -595,12 +613,12 @@ export default function RecordPage() {
 
             {/* 페이즈 — 작은 점 마커와 함께 */}
             {activeTab === 'roleplay' && selectedRecord && selectedRecord.phases.length > 0 && (
-              <div className={`flex items-center gap-3 mt-2 ${mounted ? 'animate-fade-slide-up stagger-2' : 'opacity-0'}`}>
+              <div className={`sf-record-phase-strip ${mounted ? 'animate-fade-slide-up stagger-2' : 'opacity-0'}`}>
                 {selectedRecord.phases.map((p, pi) => {
                   const active = selectedPhase?.id === p.id
                   return (
                     <button key={p.id} onClick={() => handlePhaseChange(p)}
-                      className="flex items-center gap-1.5 transition-colors">
+                      className={active ? 'is-active' : ''}>
                       <span className="block rounded-full transition-all" style={{
                         width: active ? '4px' : '3px', height: active ? '4px' : '3px',
                         background: active ? ACCENT : 'rgba(255,255,255,0.15)',
@@ -617,8 +635,8 @@ export default function RecordPage() {
           </div>
 
           {/* 목차 리스트 — Scene I, Scene II ... */}
-          <div className={`flex-1 overflow-y-auto px-7 pb-4 ${mounted ? 'animate-fade-slide-up stagger-3' : 'opacity-0'}`}>
-            <div className="label-caps text-white/15 mb-3" style={{ fontSize: '0.4rem', letterSpacing: '0.25em' }}>
+          <div className={`sf-record-sidebar-list ${mounted ? 'animate-fade-slide-up stagger-3' : 'opacity-0'}`}>
+            <div className="sf-record-list-label">
               {activeTab === 'roleplay' ? 'SCENES' : 'SESSIONS'}
             </div>
             {loading ? (
@@ -627,31 +645,31 @@ export default function RecordPage() {
               </div>
             ) : activeTab === 'roleplay' ? (
               selectedPhase && selectedPhase.sections.length > 0 ? (
-                <div className="space-y-0">
-                  {selectedPhase.sections.map((section, i) => {
-                    const isActive = selectedSection?.id === section.id
-                    return (
-                      <button key={section.id} onClick={() => handleSectionChange(section)}
-                        className="group relative block w-full text-left py-3 transition-colors">
-                        {/* Active indicator: vertical line on left */}
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 transition-all" style={{
-                          width: isActive ? '2px' : '0px', height: isActive ? '60%' : '0%',
-                          background: ACCENT,
-                        }} />
-                        <div className="flex items-baseline gap-2.5 pl-2">
-                          <span className="heading-condensed shrink-0" style={{
-                            fontStyle: 'italic',
-                            fontSize: '0.7rem',
-                            color: isActive ? ACCENT : 'rgba(255,255,255,0.2)',
+	                <div className="sf-record-list-stack">
+	                  {selectedPhase.sections.map((section, i) => {
+	                    const isActive = selectedSection?.id === section.id
+	                    return (
+	                      <button key={section.id} onClick={() => handleSectionChange(section)}
+	                        className={`sf-record-scene-row ${isActive ? 'is-active' : ''}`}>
+	                        {/* Active indicator: vertical line on left */}
+	                        <span className="sf-record-scene-rail" style={{
+	                          width: isActive ? '2px' : '0px', height: isActive ? '60%' : '0%',
+	                          background: ACCENT,
+	                        }} />
+	                        <div className="sf-record-scene-inner">
+	                          <span className="sf-record-scene-index" style={{
+	                            fontStyle: 'italic',
+	                            fontSize: '0.7rem',
+	                            color: isActive ? ACCENT : 'rgba(255,255,255,0.2)',
                             transition: 'color 0.3s',
                             minWidth: '2rem',
                           }}>
                             {`Sc.${String(i + 1).padStart(2, '0')}`}
                           </span>
-                          <span className={`heading-condensed text-[13px] leading-snug transition-all ${isActive ? 'text-white/85' : 'text-white/30 group-hover:text-white/55'}`} style={{ fontStyle: 'italic' }}>
-                            {section.password && !unlockedSections.has(section.id) && (
-                              <span style={{ fontStyle: 'normal', marginRight: '4px', fontSize: '0.6rem' }}>🔒</span>
-                            )}
+	                          <span className={`sf-record-scene-title ${isActive ? 'text-white/85' : 'text-white/30 group-hover:text-white/55'}`} style={{ fontStyle: 'italic' }}>
+	                            {section.password && !unlockedSections.has(section.id) && (
+	                              <span style={{ fontStyle: 'normal', marginRight: '4px', fontSize: '0.6rem' }}>🔒</span>
+	                            )}
                             {section.title}
                           </span>
                         </div>
@@ -666,31 +684,31 @@ export default function RecordPage() {
               )
             ) : (
               trpgSessions.length > 0 ? (
-                <div className="space-y-0">
-                  {trpgSessions.map((session, i) => {
-                    const isActive = selectedTRPGSession?.id === session.id
-                    return (
-                      <button key={session.id} onClick={() => handleTRPGSessionChange(session)}
-                        className="group relative block w-full text-left py-3 transition-colors">
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 transition-all" style={{
-                          width: isActive ? '2px' : '0px', height: isActive ? '60%' : '0%',
-                          background: TRPG_ACCENT,
-                        }} />
-                        <div className="flex items-baseline gap-2.5 pl-2">
-                          <span className="heading-condensed shrink-0" style={{
-                            fontStyle: 'italic',
-                            fontSize: '0.7rem',
-                            color: isActive ? TRPG_ACCENT : 'rgba(255,255,255,0.2)',
+	                <div className="sf-record-list-stack">
+	                  {trpgSessions.map((session, i) => {
+	                    const isActive = selectedTRPGSession?.id === session.id
+	                    return (
+	                      <button key={session.id} onClick={() => handleTRPGSessionChange(session)}
+	                        className={`sf-record-scene-row ${isActive ? 'is-active is-trpg' : 'is-trpg'}`}>
+	                        <span className="sf-record-scene-rail" style={{
+	                          width: isActive ? '2px' : '0px', height: isActive ? '60%' : '0%',
+	                          background: TRPG_ACCENT,
+	                        }} />
+	                        <div className="sf-record-scene-inner">
+	                          <span className="sf-record-scene-index" style={{
+	                            fontStyle: 'italic',
+	                            fontSize: '0.7rem',
+	                            color: isActive ? TRPG_ACCENT : 'rgba(255,255,255,0.2)',
                             transition: 'color 0.3s',
                             minWidth: '2rem',
                           }}>
                             {`Ss.${String(i + 1).padStart(2, '0')}`}
                           </span>
-                          <div>
-                            <span className={`heading-condensed text-[13px] leading-snug transition-all block ${isActive ? 'text-white/85' : 'text-white/30 group-hover:text-white/55'}`} style={{ fontStyle: 'italic' }}>
-                              {session.password && !unlockedSections.has(session.id) && (
-                                <span style={{ fontStyle: 'normal', marginRight: '4px', fontSize: '0.6rem' }}>🔒</span>
-                              )}
+	                          <div className="min-w-0">
+	                            <span className={`sf-record-scene-title ${isActive ? 'text-white/85' : 'text-white/30 group-hover:text-white/55'}`} style={{ fontStyle: 'italic' }}>
+	                              {session.password && !unlockedSections.has(session.id) && (
+	                                <span style={{ fontStyle: 'normal', marginRight: '4px', fontSize: '0.6rem' }}>🔒</span>
+	                              )}
                               {session.title}
                             </span>
                             {session.date && <span className="text-white/15 text-[10px] mt-0.5 block">{session.date}</span>}
@@ -706,17 +724,10 @@ export default function RecordPage() {
             )}
           </div>
 
-          {/* 하단: 페이지 번호 + 장식 */}
-          <div className="px-7 py-5 sketch-jitter-line" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', filter: 'url(#sketchy)' }}>
-            <div className="flex items-center justify-between">
-              <span className="label-caps text-white/15" style={{ fontSize: '0.45rem', letterSpacing: '0.25em' }}>P · 05</span>
-              <span className="text-white/15" style={{ fontSize: '0.6rem', fontStyle: 'italic', fontFamily: "'Playfair Display', serif" }}>※</span>
-            </div>
-          </div>
         </div>
 
         {/* ═══ 오른쪽: 본문 ═══ */}
-        <div className="flex-1 flex flex-col overflow-hidden relative">
+        <div className="sf-record-reader-shell">
 
           {/* 배경 워터마크 — 거대한 흐릿한 글자 */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none" aria-hidden>
@@ -733,15 +744,26 @@ export default function RecordPage() {
           </div>
 
           {/* 상단 스포트라이트 그라데이션 */}
-          <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{
-            height: '40%',
-            background: `radial-gradient(ellipse 80% 100% at 50% 0%, ${activeTab === 'roleplay' ? 'rgba(217,128,154,0.04)' : 'rgba(166,184,204,0.04)'} 0%, transparent 70%)`,
-          }} />
+	          <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{
+	            height: '40%',
+	            background: `radial-gradient(ellipse 80% 100% at 50% 0%, ${activeTab === 'roleplay' ? 'rgba(217,128,154,0.04)' : 'rgba(166,184,204,0.04)'} 0%, transparent 70%)`,
+	          }} />
 
-          {/* 상단: 섹션 제목 — 중앙 정렬, 양쪽 장식선 */}
-          <div className="relative px-10 md:px-16 lg:px-20 pt-8 md:pt-12 shrink-0">
-            {currentSectionTitle ? (
-              <div className={`text-center ${mounted ? 'animate-fade-slide-up stagger-2' : 'opacity-0'}`}>
+          <div className={`sf-window sf-record-reader-window ${mounted ? 'animate-fade-slide-up stagger-2' : 'opacity-0'}`}>
+            <div className="sf-window-header sf-record-reader-chrome">
+              <div className="sf-window-dots">
+                <span className="sf-dot sf-dot-red" />
+                <span className="sf-dot sf-dot-yellow" />
+                <span className="sf-dot sf-dot-green" />
+              </div>
+              <span className="sf-window-title">{activeTab === 'roleplay' ? 'ROLEPLAY_RECORD_VIEWER' : 'TRPG_SESSION_VIEWER'}</span>
+              <span className="sf-record-reader-signal">{currentSectionTitle || 'NO SIGNAL'}</span>
+            </div>
+
+	          {/* 상단: 섹션 제목 — 중앙 정렬, 양쪽 장식선 */}
+	          <div className="sf-record-reader-title">
+	            {currentSectionTitle ? (
+	              <div className="text-center">
                 <div className="flex items-center justify-center gap-4 mb-3">
                   <span className="block h-px sketch-jitter-line" style={{
                     width: 'clamp(40px, 8vw, 90px)',
@@ -776,10 +798,10 @@ export default function RecordPage() {
                 }} />
               </div>
             ) : null}
-          </div>
+	          </div>
 
-          {/* 대화 본문 (스크롤) */}
-          <div ref={dialogueScrollRef} className={`relative flex-1 overflow-y-auto min-h-0 px-10 md:px-16 lg:px-20 py-8 ${mounted ? 'animate-fade-slide-up stagger-3' : 'opacity-0'}`}>
+	          {/* 대화 본문 (스크롤) */}
+	          <div ref={dialogueScrollRef} className="sf-record-reader-body">
             {(pendingSection || pendingTRPG) ? (
               <div className="flex items-center justify-center h-full">
                 <div className="w-full max-w-xs text-center">
@@ -842,7 +864,7 @@ export default function RecordPage() {
                 selectedSection.lines.length === 0 ? (
                   <p className="text-white/30 text-center py-10 heading-condensed" style={{ fontStyle: 'italic' }}>Empty.</p>
                 ) : (
-                  <div className="space-y-0.5 max-w-2xl mx-auto">
+	                  <div className="sf-record-lines">
                     {selectedSection.lines.map((line, index) => (
                       <DialogueBubble key={line.id} line={line} manonAvatar={selectedSection?.manonAvatar} dylanAvatar={selectedSection?.dylanAvatar} onImageClick={(imageIndex) => handleImageClick(selectedSection.lines, index, imageIndex)} />
                     ))}
@@ -862,7 +884,7 @@ export default function RecordPage() {
                 selectedTRPGSession.lines.length === 0 ? (
                   <p className="text-white/30 text-center py-10 heading-condensed" style={{ fontStyle: 'italic' }}>Empty.</p>
                 ) : (
-                  <div className="space-y-0.5 max-w-2xl mx-auto">
+	                  <div className="sf-record-lines">
                     {selectedTRPGSession.lines.map((line, index) => (
                       <TRPGBubble key={line.id} line={line} characters={selectedTRPGSession.characters} onImageClick={(imageIndex) => handleImageClick(selectedTRPGSession.lines, index, imageIndex)} />
                     ))}
@@ -879,14 +901,9 @@ export default function RecordPage() {
             )}
           </div>
 
-          {/* 하단 */}
-          <div className="relative px-10 md:px-16 lg:px-20 pb-6 md:pb-9 shrink-0 flex items-center justify-between">
-            <span className="label-caps text-white/15" style={{ fontSize: '0.45rem', letterSpacing: '0.3em' }}>
-              SOMBRE
-            </span>
-            <span className="heading-condensed text-white/30" style={{ fontSize: '0.65rem', fontStyle: 'italic' }}>Records</span>
           </div>
-        </div>
+	        </div>
+      </div>
       </div>
 
       {/* 이미지 갤러리 */}

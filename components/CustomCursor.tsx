@@ -85,8 +85,8 @@ export default function CustomCursor() {
         height: hovering ? '40px' : '24px',
         borderWidth: '1.5px',
         borderColor: hovering
-          ? (onDark ? 'rgba(220, 180, 190, 0.7)' : 'rgba(139, 21, 56, 0.5)')
-          : (onDark ? 'rgba(255, 255, 255, 0.6)' : 'rgba(45, 42, 38, 0.5)'),
+          ? 'rgba(0, 255, 204, 0.7)'
+          : (onDark ? 'rgba(0, 255, 204, 0.4)' : 'rgba(0, 255, 204, 0.3)'),
         opacity: visible ? 1 : 0,
         top: 0,
         left: 0,

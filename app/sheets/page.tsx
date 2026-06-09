@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import EdgeCurtain from '@/components/EdgeCurtain'
-import SketchyFilter from '@/components/SketchyFilter'
+import { ROUTE_DIRECTION_KEY, SKIP_HOME_BOOT_KEY, SunjaeChrome, type RouteDirection } from '@/components/SunjaeChrome'
 import { BalletRibbon, MagicSparkle } from '@/components/StageMotifs'
 import type { Sheet, SheetsData } from '@/app/api/sheets/route'
 
@@ -14,8 +13,19 @@ export default function SheetsPage() {
   const [sheets, setSheets] = useState<Sheet[]>([])
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [routeDirection, setRouteDirection] = useState<RouteDirection>('next')
+  const [routeReady, setRouteReady] = useState(false)
+  const [routeLeaving, setRouteLeaving] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    const stored = sessionStorage?.getItem(ROUTE_DIRECTION_KEY)
+    if (stored === 'prev' || stored === 'next') setRouteDirection(stored)
+    sessionStorage?.removeItem(ROUTE_DIRECTION_KEY)
+    const raf = requestAnimationFrame(() => setRouteReady(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
 
   useEffect(() => {
     const ok = typeof window !== 'undefined' && localStorage.getItem('same_admin_login') === 'true'
@@ -34,42 +44,33 @@ export default function SheetsPage() {
       .finally(() => setLoading(false))
   }, [authed])
 
+  const navigateInterface = (href: string, direction: RouteDirection) => {
+    sessionStorage?.setItem(ROUTE_DIRECTION_KEY, direction)
+    if (href === '/') sessionStorage?.setItem(SKIP_HOME_BOOT_KEY, 'true')
+    setRouteDirection(direction)
+    setRouteLeaving(true)
+    setTimeout(() => router.push(href), 520)
+  }
+
   if (!authChecked) {
-    return <div className="fixed inset-0 bg-black" />
+    return <div className="fixed inset-0 bg-[#050a0d]" />
   }
 
   if (!authed) {
-    return <AccessDenied onBack={() => router.push('/')} />
+    return <AccessDenied onBack={() => navigateInterface('/', 'prev')} onNavigate={navigateInterface} />
   }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black overflow-hidden text-white">
-      <SketchyFilter />
-      <EdgeCurtain side="left" />
-      <EdgeCurtain side="right" />
+    <div className="fixed inset-0 z-[60] bg-[#050a0d] overflow-hidden text-white">
+      <SunjaeChrome
+        interfaceLabel="SHEETS_INTERFACE"
+        previousHref={null}
+        nextHref={null}
+        onNavigate={navigateInterface}
+        onAccess={() => navigateInterface('/', 'prev')}
+      />
 
-      {/* Frame line */}
-      <div className="fixed pointer-events-none z-[3] sketch-jitter-line" style={{
-        top: 'clamp(28px, 3vw, 48px)', left: '7%', right: '7%', height: '1px',
-        background: 'rgba(255,255,255,0.1)', filter: 'url(#sketchy)',
-      }} />
-
-      {/* Top bar */}
-      <div className={`fixed top-0 left-0 right-0 z-[10] flex items-center justify-between ${mounted ? 'animate-fade-slide-up' : 'opacity-0'}`}
-        style={{ padding: 'clamp(28px, 3vw, 44px) clamp(64px, 9vw, 100px) 0' }}>
-        <button onClick={() => router.push('/')}
-          className="label-caps text-white/40 hover:text-white/80 transition-colors"
-          style={{ fontSize: '0.55rem', letterSpacing: '0.25em' }}>
-          ← BACK
-        </button>
-        <div className="flex items-baseline gap-2">
-          <span className="label-caps text-white/25" style={{ fontSize: '0.5rem', letterSpacing: '0.3em' }}>SHEETS</span>
-          <span className="text-white/15">·</span>
-          <span className="heading-condensed text-white/40" style={{ fontStyle: 'italic', fontSize: '0.7rem' }}>
-            Admin only
-          </span>
-        </div>
-      </div>
+      <div className={`absolute inset-0 sf-route-slide sf-route-${routeDirection} ${routeReady ? 'sf-route-slide-ready' : ''} ${routeLeaving ? 'sf-route-slide-leaving' : ''}`}>
 
       {/* Side motifs */}
       <div className="fixed pointer-events-none z-[2]" style={{ top: '12%', left: '8%' }}>
@@ -174,11 +175,6 @@ export default function SheetsPage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className={`fixed bottom-3 left-0 right-0 z-[5] flex justify-between items-center ${mounted ? 'animate-fade-slide-up stagger-4' : 'opacity-0'}`}
-        style={{ padding: '0 clamp(64px, 9vw, 100px)' }}>
-        <span className="label-caps text-white/15" style={{ fontSize: '0.45rem', letterSpacing: '0.3em' }}>SOMBRE · ADMIN</span>
-        <span className="heading-condensed text-white/25" style={{ fontStyle: 'italic', fontSize: '0.6rem' }}>Sheets</span>
       </div>
     </div>
   )
@@ -245,10 +241,17 @@ function SheetCard({ sheet, index }: { sheet: Sheet; index: number }) {
   )
 }
 
-function AccessDenied({ onBack }: { onBack: () => void }) {
+function AccessDenied({ onBack, onNavigate }: { onBack: () => void; onNavigate: (href: string, direction: RouteDirection) => void }) {
   return (
-    <div className="fixed inset-0 z-[60] bg-black overflow-hidden text-white flex items-center justify-center">
-      <div className="text-center max-w-sm px-8">
+    <div className="fixed inset-0 z-[60] bg-[#050a0d] overflow-hidden text-white flex items-center justify-center">
+      <SunjaeChrome
+        interfaceLabel="SHEETS_INTERFACE"
+        previousHref={null}
+        nextHref={null}
+        onNavigate={onNavigate}
+        onAccess={onBack}
+      />
+      <div className="relative z-[10] text-center max-w-sm px-8">
         <p className="label-caps text-white/30 mb-4" style={{ fontSize: '0.55rem', letterSpacing: '0.3em' }}>
           ⟢ RESTRICTED
         </p>

@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import EdgeCurtain from '@/components/EdgeCurtain'
-import SketchyFilter from '@/components/SketchyFilter'
+import { ROUTE_DIRECTION_KEY, SKIP_HOME_BOOT_KEY, SunjaeChrome, type RouteDirection } from '@/components/SunjaeChrome'
 import { BalletRibbon } from '@/components/StageMotifs'
 
 interface BodyPart {
@@ -33,9 +32,20 @@ export default function ForewordPage() {
   const [displayedText, setDisplayedText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [hoveredPart, setHoveredPart] = useState<string | null>(null)
+  const [routeDirection, setRouteDirection] = useState<RouteDirection>('next')
+  const [routeReady, setRouteReady] = useState(false)
+  const [routeLeaving, setRouteLeaving] = useState(false)
   const typingRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    const stored = sessionStorage?.getItem(ROUTE_DIRECTION_KEY)
+    if (stored === 'prev' || stored === 'next') setRouteDirection(stored)
+    sessionStorage?.removeItem(ROUTE_DIRECTION_KEY)
+    const raf = requestAnimationFrame(() => setRouteReady(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
 
   useEffect(() => {
     fetch('/api/game-dialogues')
@@ -74,11 +84,25 @@ export default function ForewordPage() {
     return () => { if (typingRef.current) clearInterval(typingRef.current) }
   }, [])
 
+  const navigateInterface = (href: string, direction: RouteDirection) => {
+    sessionStorage?.setItem(ROUTE_DIRECTION_KEY, direction)
+    if (href === '/') sessionStorage?.setItem(SKIP_HOME_BOOT_KEY, 'true')
+    setRouteDirection(direction)
+    setRouteLeaving(true)
+    setTimeout(() => router.push(href), 520)
+  }
+
   return (
-    <div className="fixed inset-0 z-[60] bg-black overflow-hidden">
-      <SketchyFilter />
-      <EdgeCurtain side="left" />
-      <EdgeCurtain side="right" />
+    <div className="fixed inset-0 z-[60] bg-[#050a0d] overflow-hidden text-white">
+      <SunjaeChrome
+        interfaceLabel="MANON_INTERVIEW"
+        previousHref={null}
+        nextHref={null}
+        onNavigate={navigateInterface}
+        onAccess={() => navigateInterface('/', 'prev')}
+      />
+
+      <div className={`absolute inset-0 sf-route-slide sf-route-${routeDirection} ${routeReady ? 'sf-route-slide-ready' : ''} ${routeLeaving ? 'sf-route-slide-leaving' : ''}`}>
 
       {/* Subtle ribbon motif top corner */}
       <div className="fixed pointer-events-none z-[2]" style={{ top: '8%', right: '10%' }}>
@@ -90,24 +114,6 @@ export default function ForewordPage() {
         top: 0, left: '20%', right: '20%', height: '70%',
         background: 'radial-gradient(ellipse 60% 80% at 50% 0%, rgba(217,128,154,0.06) 0%, transparent 70%)',
       }} />
-
-      {/* Frame lines */}
-      <div className="fixed pointer-events-none z-[3] sketch-jitter-line" style={{ top: 'clamp(28px, 3vw, 48px)', left: '7%', right: '7%', height: '1px', background: 'rgba(255,255,255,0.1)', filter: 'url(#sketchy)' }} />
-
-      {/* Top bar: Back + Title */}
-      <div className={`fixed top-0 left-0 right-0 z-[10] flex items-center justify-between ${mounted ? 'animate-fade-slide-up' : 'opacity-0'}`}
-        style={{ padding: 'clamp(28px, 3vw, 44px) clamp(64px, 9vw, 100px) 0' }}>
-        <button onClick={() => router.push('/')}
-          className="label-caps text-white/40 hover:text-white/80 transition-colors"
-          style={{ fontSize: '0.55rem', letterSpacing: '0.25em' }}>
-          ← BACK
-        </button>
-        <div className="flex items-baseline gap-2">
-          <span className="label-caps text-white/25" style={{ fontSize: '0.5rem', letterSpacing: '0.3em' }}>FOREWORD</span>
-          <span className="text-white/15">·</span>
-          <span className="heading-condensed text-white/40" style={{ fontStyle: 'italic', fontSize: '0.7rem' }}>by {CHARACTER}</span>
-        </div>
-      </div>
 
       {/* Character stage */}
       <div className={`absolute inset-0 flex items-center justify-center ${mounted ? 'animate-fade-slide-up stagger-2' : 'opacity-0'}`}
@@ -155,7 +161,7 @@ export default function ForewordPage() {
       {/* ═══ Visual-novel style dialogue box (bottom) ═══ */}
       <div
         className={`fixed left-0 right-0 z-[15] cursor-pointer ${mounted ? 'animate-fade-slide-up stagger-3' : 'opacity-0'}`}
-        style={{ bottom: 'clamp(28px, 3vw, 44px)', padding: '0 clamp(64px, 9vw, 100px)' }}
+        style={{ bottom: 'clamp(54px, 7vh, 82px)', padding: '0 clamp(64px, 9vw, 100px)' }}
         onClick={skipTyping}
       >
         <div className="relative">
@@ -230,11 +236,6 @@ export default function ForewordPage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className={`fixed bottom-2 left-0 right-0 z-[5] flex justify-between items-center ${mounted ? 'animate-fade-slide-up stagger-4' : 'opacity-0'}`}
-        style={{ padding: '0 clamp(64px, 9vw, 100px)' }}>
-        <span className="label-caps text-white/15" style={{ fontSize: '0.45rem', letterSpacing: '0.3em' }}>SOMBRE</span>
-        <span className="heading-condensed text-white/25" style={{ fontStyle: 'italic', fontSize: '0.6rem' }}>Foreword</span>
       </div>
     </div>
   )

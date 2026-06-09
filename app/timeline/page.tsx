@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
-import EdgeCurtain from '@/components/EdgeCurtain'
-import SketchyFilter from '@/components/SketchyFilter'
+import { ROUTE_DIRECTION_KEY, SKIP_HOME_BOOT_KEY, SunjaeChrome, type RouteDirection } from '@/components/SunjaeChrome'
 import type { TimelineEvent, TimelineData } from '@/app/api/timeline/route'
 
 const MANON_COLOR = '#D9809A'
@@ -18,7 +17,25 @@ function getAccent(ev: TimelineEvent) {
   return { manon: MANON_COLOR, dylan: DYLAN_COLOR, both: BOTH_COLOR }[ev.character || 'both'] || BOTH_COLOR
 }
 
-// Zigzag constellation positions
+const MAX_TIMELINE_NODES = 30
+const DEFAULT_TIMELINE_PREVIEW_NODES = 5
+const PLANET_PALETTE = ['#00FFCC', '#D9809A', '#8BD8FF', '#B8A0CC', '#78E0C6', '#C8C8C8']
+const PLANET_SIZE_PATTERN = [
+  74, 58, 68, 52, 80, 62, 72, 56, 66, 76,
+  54, 70, 60, 82, 64, 50, 78, 59, 73, 55,
+  69, 61, 75, 57, 67, 79, 53, 71, 63, 77,
+]
+
+type RoutePlanet = {
+  x: number
+  y: number
+  size: number
+  color: string
+  sprite: number
+}
+
+type RoutePoint = Pick<RoutePlanet, 'x' | 'y'>
+
 const JITTERS: [number, number][] = [
   [4, 2], [-5, -3], [3, 5], [-4, -2], [6, 3],
   [-3, -5], [5, -2], [-5, 4], [2, -4], [-2, 5],
@@ -26,23 +43,97 @@ const JITTERS: [number, number][] = [
   [-3, 5], [6, -4], [-4, -4], [3, 3], [-2, -3],
 ]
 
-function getPositions(n: number) {
-  if (n === 0) return []
-  if (n === 1) return [{ x: 35, y: 50 }]
-  const COLS = n <= 3 ? n : n <= 6 ? 3 : n <= 12 ? 4 : 5
-  const rows = Math.ceil(n / COLS)
-  return Array.from({ length: n }, (_, i) => {
-    const row = Math.floor(i / COLS)
-    const col = i % COLS
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value))
+}
+
+function getPlanetSpriteSrc(sprite: number) {
+  return `/assets/timeline/planet-${String(sprite % MAX_TIMELINE_NODES).padStart(2, '0')}.png`
+}
+
+function getPlanetSize(index: number, count: number) {
+  const size = PLANET_SIZE_PATTERN[index % PLANET_SIZE_PATTERN.length]
+  if (count > 20) return Math.round(size * 0.7)
+  if (count > 12) return Math.round(size * 0.84)
+  return size
+}
+
+function getRoutePlanets(count: number): RoutePlanet[] {
+  const safeCount = clamp(count, 1, MAX_TIMELINE_NODES)
+  const columns = safeCount <= 5 ? safeCount : safeCount <= 12 ? 6 : safeCount <= 20 ? 8 : 10
+  const rows = Math.ceil(safeCount / columns)
+
+  return Array.from({ length: safeCount }, (_, i) => {
+    const row = Math.floor(i / columns)
+    const col = i % columns
     const goRight = row % 2 === 0
-    const colsInRow = row === rows - 1 ? n - row * COLS : COLS
-    const norm = colsInRow <= 1 ? 0.5 :
-      goRight ? col / (colsInRow - 1) : (colsInRow - 1 - col) / (colsInRow - 1)
-    const x = 10 + norm * 80
-    const y = rows === 1 ? 50 : 12 + (row / (rows - 1)) * 76
+    const colsInRow = row === rows - 1 ? safeCount - row * columns : columns
+    const progress = colsInRow <= 1 ? 0.5 : goRight ? col / (colsInRow - 1) : (colsInRow - 1 - col) / (colsInRow - 1)
+    const rowProgress = rows <= 1 ? 0.5 : row / (rows - 1)
     const [jx, jy] = JITTERS[i % JITTERS.length]
-    return { x: Math.max(6, Math.min(94, x + jx)), y: Math.max(8, Math.min(92, y + jy)) }
+
+    return {
+      x: clamp(8 + progress * 84 + jx * 0.5, 6, 94),
+      y: clamp((rows === 1 ? 52 : 20 + rowProgress * 60) + Math.sin(progress * Math.PI * 1.35 + row * 0.7) * 6 + jy * 0.5, 15, 84),
+      size: getPlanetSize(i, safeCount),
+      color: PLANET_PALETTE[i % PLANET_PALETTE.length],
+      sprite: i % MAX_TIMELINE_NODES,
+    }
   })
+}
+
+function buildSingleOrbitPath(point: RoutePoint, radius = 9) {
+  return `M ${point.x - radius} ${point.y} C ${point.x - radius} ${point.y - radius * 0.9}, ${point.x + radius} ${point.y - radius * 0.9}, ${point.x + radius} ${point.y} C ${point.x + radius} ${point.y + radius * 0.9}, ${point.x - radius} ${point.y + radius * 0.9}, ${point.x - radius} ${point.y} Z`
+}
+
+function buildCatmullRomPath(points: RoutePoint[], closed = false) {
+  if (points.length === 0) return ''
+  if (points.length === 1) return buildSingleOrbitPath(points[0])
+
+  const total = points.length
+  const segmentCount = closed ? total : total - 1
+  let path = `M ${points[0].x} ${points[0].y}`
+
+  for (let i = 0; i < segmentCount; i += 1) {
+    const p0 = closed ? points[(i - 1 + total) % total] : points[Math.max(i - 1, 0)]
+    const p1 = points[i]
+    const p2 = points[(i + 1) % total]
+    const p3 = closed ? points[(i + 2) % total] : points[Math.min(i + 2, total - 1)]
+    const c1x = p1.x + (p2.x - p0.x) / 6
+    const c1y = p1.y + (p2.y - p0.y) / 6
+    const c2x = p2.x - (p3.x - p1.x) / 6
+    const c2y = p2.y - (p3.y - p1.y) / 6
+
+    path += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`
+  }
+
+  return path
+}
+
+function buildRoutePath(planets: RoutePlanet[]) {
+  if (planets.length === 1) {
+    const p = planets[0]
+    return `M ${p.x - 9} ${p.y} C ${p.x - 9} ${p.y - 8}, ${p.x + 9} ${p.y - 8}, ${p.x + 9} ${p.y} C ${p.x + 9} ${p.y + 8}, ${p.x - 9} ${p.y + 8}, ${p.x - 9} ${p.y} Z`
+  }
+
+  return buildCatmullRomPath(planets)
+}
+
+function buildShipRoutePath(planets: RoutePlanet[]) {
+  if (planets.length <= 1) return buildRoutePath(planets)
+
+  const first = planets[0]
+  const last = planets[planets.length - 1]
+  const minY = Math.min(...planets.map(planet => planet.y))
+  const maxY = Math.max(...planets.map(planet => planet.y))
+  const returnY = clamp(maxY < 72 ? maxY + 18 : minY - 18, 8, 92)
+  const returnPoints: RoutePoint[] = [
+    { x: clamp(last.x - 2, 5, 95), y: returnY },
+    { x: 50, y: clamp(returnY + (returnY > 50 ? 8 : -8), 6, 94) },
+    { x: clamp(first.x + 2, 5, 95), y: returnY },
+  ]
+
+  return buildCatmullRomPath([...planets, ...returnPoints], true)
 }
 
 // Decorative background stars
@@ -59,8 +150,20 @@ export default function TimelinePage() {
   const [loading, setLoading] = useState(true)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [hoverId, setHoverId] = useState<string | null>(null)
+  const [selectedNodeIndex, setSelectedNodeIndex] = useState(0)
+  const [routeDirection, setRouteDirection] = useState<RouteDirection>('next')
+  const [routeReady, setRouteReady] = useState(false)
+  const [routeLeaving, setRouteLeaving] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    const stored = sessionStorage?.getItem(ROUTE_DIRECTION_KEY)
+    if (stored === 'prev' || stored === 'next') setRouteDirection(stored)
+    sessionStorage?.removeItem(ROUTE_DIRECTION_KEY)
+    const raf = requestAnimationFrame(() => setRouteReady(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
 
   useEffect(() => {
     fetch('/api/timeline')
@@ -76,14 +179,49 @@ export default function TimelinePage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const positions = getPositions(events.length)
-  const active = events.find(e => e.id === activeId)
+  const visibleEvents = events.slice(0, MAX_TIMELINE_NODES)
+  const nodeCount = visibleEvents.length > 0 ? visibleEvents.length : DEFAULT_TIMELINE_PREVIEW_NODES
+  const routePlanets = getRoutePlanets(nodeCount)
+  const routeNodes = routePlanets.map((planet, index) => ({ planet, event: visibleEvents[index] || null }))
+  const selectedNode = routeNodes[selectedNodeIndex] || routeNodes[0]
+  const active = selectedNode?.event || null
+  const routePath = buildRoutePath(routePlanets)
+  const shipRoutePath = buildShipRoutePath(routePlanets)
+
+  useEffect(() => {
+    setSelectedNodeIndex(prev => Math.min(prev, nodeCount - 1))
+  }, [nodeCount])
+
+  const selectNode = (index: number) => {
+    const node = routeNodes[index]
+    setSelectedNodeIndex(index)
+    if (node?.event) setActiveId(node.event.id)
+  }
+
+  const stepNode = (delta: number) => {
+    const nextIndex = Math.max(0, Math.min(routeNodes.length - 1, selectedNodeIndex + delta))
+    selectNode(nextIndex)
+  }
+
+  const navigateInterface = (href: string, direction: RouteDirection) => {
+    sessionStorage?.setItem(ROUTE_DIRECTION_KEY, direction)
+    if (href === '/') sessionStorage?.setItem(SKIP_HOME_BOOT_KEY, 'true')
+    setRouteDirection(direction)
+    setRouteLeaving(true)
+    setTimeout(() => router.push(href), 520)
+  }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black overflow-hidden text-white">
-      <SketchyFilter />
-      <EdgeCurtain side="left" />
-      <EdgeCurtain side="right" />
+    <div className="fixed inset-0 z-[60] bg-[#050a0d] overflow-hidden text-white">
+      <SunjaeChrome
+        interfaceLabel="TIMELINE_INTERFACE"
+        previousHref="/record"
+        nextHref="/au"
+        onNavigate={navigateInterface}
+        onAccess={() => navigateInterface('/', 'prev')}
+      />
+
+      <div className={`absolute inset-0 sf-route-slide sf-route-${routeDirection} ${routeReady ? 'sf-route-slide-ready' : ''} ${routeLeaving ? 'sf-route-slide-leaving' : ''}`}>
 
       {/* Sketchy animation (same as main page) */}
       <style>{`
@@ -93,235 +231,162 @@ export default function TimelinePage() {
         }
       `}</style>
 
-      {/* Header */}
-      <div className={`fixed top-0 left-0 right-0 z-[10] flex items-center justify-between ${mounted ? 'animate-fade-slide-up' : 'opacity-0'}`}
-        style={{ padding: 'clamp(28px, 3vw, 44px) clamp(64px, 9vw, 100px) 0' }}>
-        <button onClick={() => router.push('/')}
-          className="label-caps text-white/40 hover:text-white/80 transition-colors"
-          style={{ fontSize: '0.78rem', letterSpacing: '0.25em' }}>
-          ← BACK
-        </button>
-        <div className="flex items-baseline gap-2">
-          <span className="label-caps text-white/25" style={{ fontSize: '0.75rem', letterSpacing: '0.3em' }}>TIMELINE</span>
-          <span className="text-white/15">·</span>
-          <span className="heading-condensed text-white/40" style={{ fontStyle: 'italic', fontSize: '0.88rem' }}>
-            Doomsday
-          </span>
-        </div>
-      </div>
-
-      {/* Top sketchy line (like main page) */}
-      <div className="fixed pointer-events-none z-[3] sketch-jitter-line" style={{
-        top: 'clamp(28px, 3vw, 48px)', left: '7%', right: '7%', height: '1px',
-        background: 'rgba(255,255,255,0.1)', filter: 'url(#sketchy)',
-      }} />
-
       {loading ? (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-6 h-6 border border-white/10 border-t-white/40 rounded-full animate-spin" />
         </div>
-      ) : events.length === 0 ? (
-        <EmptyState />
       ) : (
-        <div className="absolute inset-0 flex flex-col md:flex-row" style={{
-          paddingTop: 'clamp(70px, 9vw, 110px)',
-          paddingBottom: '16px',
-          paddingLeft: '7%', paddingRight: '7%',
-        }}>
-          {/* Constellation canvas */}
-          <div className="relative flex-1 min-h-0" style={{ minHeight: '40vh' }}>
-            <svg
-              className="absolute inset-0 w-full h-full sketch-jitter-line"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="xMidYMid meet"
-              style={{ filter: 'url(#sketchy)' }}
-            >
-              {/* Background star dots */}
-              {BG_STARS.map((s, i) => (
-                <circle key={`bg${i}`} cx={s.x} cy={s.y} r={s.r * 0.4}
-                  fill="white" opacity={0.04 + (i % 5) * 0.01}
-                  style={i % 9 === 0 ? { animation: `star-twinkle ${3 + i % 4}s ease-in-out ${(i % 7) * 0.4}s infinite` } : undefined}
-                />
-              ))}
-
-              {/* Constellation lines — ALL connected in order, hand-drawn style */}
-              {events.map((_, i) => {
-                if (i === 0) return null
-                const from = positions[i - 1]
-                const to = positions[i]
-                if (!from || !to) return null
-                const nearActive = events[i].id === activeId || events[i - 1]?.id === activeId
-                return (
-                  <line key={`ln-${i}`}
-                    x1={from.x} y1={from.y} x2={to.x} y2={to.y}
-                    stroke={nearActive ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)'}
-                    strokeWidth="0.22"
-                    style={{ transition: 'stroke 0.4s' }}
+        <div className="sf-timeline-stage">
+          <div className="sf-window sf-timeline-map">
+            <div className="sf-window-header sf-timeline-map-header">
+              <div className="sf-window-dots">
+                <span className="sf-dot sf-dot-red" />
+                <span className="sf-dot sf-dot-yellow" />
+                <span className="sf-dot sf-dot-green" />
+              </div>
+              <span className="sf-window-title">ORBITAL_ROUTE_MAP</span>
+              <span className="sf-timeline-signal">VESSEL: ACTIVE</span>
+            </div>
+            <div className="sf-timeline-map-body">
+              <svg className="sf-timeline-route-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                {BG_STARS.map((star, index) => (
+                  <circle
+                    key={`bg${index}`}
+                    cx={star.x}
+                    cy={star.y}
+                    r={star.r * 0.35}
+                    fill="rgba(0,255,204,0.38)"
+                    opacity={0.12 + (index % 5) * 0.025}
+                    style={index % 9 === 0 ? { animation: `star-twinkle ${3 + index % 4}s ease-in-out ${(index % 7) * 0.4}s infinite` } : undefined}
                   />
-                )
-              })}
+                ))}
+                <path
+                  id="timeline-route-path"
+                  d={routePath}
+                  className="sf-timeline-route-line"
+                  pathLength="100"
+                />
+                <path
+                  d={routePath}
+                  className="sf-timeline-route-glow"
+                  pathLength="100"
+                />
+              </svg>
 
-              {/* Stars — hand-drawn X marks + circles */}
-              {events.map((ev, i) => {
-                const pos = positions[i]
-                if (!pos) return null
-                const isActive = ev.id === activeId
-                const isHovered = ev.id === hoverId
-                const accent = getAccent(ev)
-                const sz = ev.type === 'milestone' ? 2.5 : ev.type === 'turning' ? 2.2 : 1.8
-                const r = isActive ? sz + 1 : isHovered ? sz + 0.4 : sz
+              <svg className="sf-timeline-ship-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path
+                  id="timeline-ship-route-path"
+                  d={shipRoutePath}
+                  className="sf-timeline-ship-path"
+                  pathLength="100"
+                />
+                <g className="sf-timeline-ship">
+                  <animateMotion dur="18s" repeatCount="indefinite" rotate="auto">
+                    <mpath href="#timeline-ship-route-path" />
+                  </animateMotion>
+                  <g className="sf-timeline-ship-pixel">
+                    <image
+                      href="/assets/timeline/spaceship-bitmap.png"
+                      x="-4.2"
+                      y="-2"
+                      width="8.4"
+                      height="4"
+                      preserveAspectRatio="xMidYMid meet"
+                    />
+                  </g>
+                </g>
+              </svg>
 
+              {routeNodes.map(({ planet, event }, index) => {
+                const isSelected = selectedNodeIndex === index
+                const accent = event ? getAccent(event) : planet.color
                 return (
-                  <g key={ev.id} style={{ cursor: 'pointer' }}
-                    onClick={() => setActiveId(ev.id)}
-                    onMouseEnter={() => setHoverId(ev.id)}
+                  <button
+                    key={`planet-${index}`}
+                    className={`sf-timeline-planet sf-timeline-planet-${index % 5} ${isSelected ? 'is-active' : ''} ${event ? '' : 'is-empty'}`}
+                    style={{
+                      left: `${planet.x}%`,
+                      top: `${planet.y}%`,
+                      width: planet.size,
+                      height: planet.size,
+                      '--planet-color': accent,
+                    } as CSSProperties}
+                    onClick={() => selectNode(index)}
+                    onMouseEnter={() => event && setHoverId(event.id)}
                     onMouseLeave={() => setHoverId(null)}
                   >
-                    {/* Outer ring — hand-drawn circle */}
-                    {isActive && (
-                      <circle cx={pos.x} cy={pos.y} r={r + 2.5}
-                        fill="none" stroke={accent} strokeWidth="0.18" opacity="0.3" />
+                    <img
+                      className="sf-timeline-planet-img"
+                      src={getPlanetSpriteSrc(planet.sprite)}
+                      alt=""
+                      draggable={false}
+                    />
+                    <span className="sf-timeline-planet-index">{String(index + 1).padStart(2, '0')}</span>
+                    {event && (isSelected || hoverId === event.id) && (
+                      <span className="sf-timeline-planet-title">{event.title}</span>
                     )}
-
-                    {/* Star X mark — like hand-drawn tape marks on main page */}
-                    <line x1={pos.x - r} y1={pos.y - r * 0.6}
-                          x2={pos.x + r} y2={pos.y + r * 0.6}
-                          stroke={isActive ? accent : isHovered ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.5)'}
-                          strokeWidth={isActive ? '0.35' : '0.22'}
-                          strokeLinecap="round"
-                          style={{ transition: 'stroke 0.3s' }} />
-                    <line x1={pos.x + r} y1={pos.y - r * 0.6}
-                          x2={pos.x - r} y2={pos.y + r * 0.6}
-                          stroke={isActive ? accent : isHovered ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.5)'}
-                          strokeWidth={isActive ? '0.35' : '0.22'}
-                          strokeLinecap="round"
-                          style={{ transition: 'stroke 0.3s' }} />
-
-                    {/* Center dot */}
-                    <circle cx={pos.x} cy={pos.y}
-                      r={isActive ? 0.8 : 0.5}
-                      fill={isActive ? accent : 'rgba(255,255,255,0.6)'}
-                      style={{ transition: 'all 0.3s' }} />
-
-                    {/* Glow halo for active */}
-                    {isActive && (
-                      <circle cx={pos.x} cy={pos.y} r={r * 2}
-                        fill="none" stroke={accent} strokeWidth="0.08" opacity="0.15"
-                        strokeDasharray="0.5 0.8" />
-                    )}
-
-                    {/* Number */}
-                    <text x={pos.x} y={pos.y - r - 1.8}
-                      textAnchor="middle" fontSize="1.8"
-                      fill="rgba(255,255,255,0.22)"
-                      fontFamily="'Pretendard Variable', sans-serif"
-                    >{String(i + 1).padStart(2, '0')}</text>
-
-                    {/* Title on hover/active */}
-                    {(isActive || isHovered) && (
-                      <text x={pos.x} y={pos.y + r + 3.2}
-                        textAnchor="middle" fontSize="2"
-                        fill={isActive ? accent : 'rgba(255,255,255,0.6)'}
-                        fontFamily="'Playfair Display', serif"
-                        fontStyle="italic"
-                      >{ev.title.length > 18 ? ev.title.slice(0, 17) + '…' : ev.title}</text>
-                    )}
-                  </g>
+                  </button>
                 )
               })}
-            </svg>
+            </div>
           </div>
 
-          {/* Detail panel — right side */}
-          {active && (
-            <div className="md:w-[300px] lg:w-[340px] flex flex-col overflow-hidden animate-fade-in" key={active.id}
-              style={{
-                borderLeft: '1px solid rgba(255,255,255,0.06)',
-                padding: 'clamp(14px, 1.5vw, 28px) clamp(16px, 2vw, 28px)',
-              }}>
-              <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.08) transparent' }}>
-                {/* Decorative divider */}
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <span className="block h-px sketch-jitter-line" style={{
-                    width: '24px', background: `${getAccent(active)}50`, filter: 'url(#sketchy)',
-                  }} />
-                  <span style={{ color: getAccent(active), fontSize: '0.82rem', opacity: 0.6, fontFamily: "'Playfair Display', serif", fontStyle: 'italic' }}>※</span>
-                  <span className="block h-px sketch-jitter-line" style={{
-                    width: '24px', background: `${getAccent(active)}50`, filter: 'url(#sketchy)',
-                  }} />
-                </div>
-
-                {/* Date + type */}
-                <div className="text-center mb-3">
-                  <span className="label-caps" style={{
-                    fontSize: '0.75rem', letterSpacing: '0.25em',
-                    color: getAccent(active), opacity: 0.9,
-                  }}>{active.storyDate}</span>
-                  {active.type && (
-                    <span className="label-caps ml-2" style={{
-                      fontSize: '0.72rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)',
-                    }}>· {TYPE_LABELS[active.type] || active.type}</span>
-                  )}
-                </div>
-
-                {/* Title */}
-                <h2 className="heading-display text-center mb-2" style={{
-                  fontSize: 'clamp(1.2rem, 2.2vw, 1.7rem)',
-                  color: 'rgba(255,255,255,0.92)', lineHeight: 1.1,
-                }}>{active.title}</h2>
-
-                {/* Character */}
-                {active.character && (
-                  <div className="text-center mb-4">
-                    <span className="label-caps" style={{
-                      fontSize: '0.75rem', letterSpacing: '0.2em',
-                      color: getAccent(active), opacity: 0.5,
-                      borderBottom: `1px solid ${getAccent(active)}30`, paddingBottom: '2px',
-                    }}>
-                      {active.character === 'both' ? 'Manon × Dylan' : active.character === 'manon' ? 'Manon' : 'Dylan'}
-                    </span>
-                  </div>
-                )}
-
-                {/* Sketchy divider */}
-                <div className="sketch-jitter-line mb-4" style={{
-                  height: '1px', background: 'rgba(255,255,255,0.06)', filter: 'url(#sketchy)',
-                }} />
-
-                {/* Description */}
-                <p className="text-editorial whitespace-pre-wrap" style={{
-                  color: 'rgba(255,255,255,0.6)',
-                  fontSize: 'clamp(0.88rem, 1vw, 0.95rem)',
-                  lineHeight: 1.85,
-                }}>
-                  {active.description || <span style={{ fontStyle: 'italic', opacity: 0.4 }}>내용 없음</span>}
-                </p>
+          <div className="sf-window sf-timeline-detail">
+            <div className="sf-window-header">
+              <div className="sf-window-dots">
+                <span className="sf-dot sf-dot-red" />
+                <span className="sf-dot sf-dot-yellow" />
+                <span className="sf-dot sf-dot-green" />
               </div>
-
-              {/* Nav */}
-              <div className="flex items-center justify-between mt-3 pt-2" style={{
-                borderTop: '1px solid rgba(255,255,255,0.05)',
-              }}>
-                <button
-                  onClick={() => { const idx = events.findIndex(e => e.id === activeId); if (idx > 0) setActiveId(events[idx - 1].id) }}
-                  disabled={events.findIndex(e => e.id === activeId) === 0}
-                  className="label-caps disabled:opacity-15 hover:text-white/80"
-                  style={{ fontSize: '0.75rem', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.4)' }}
-                >← PREV</button>
-                <span className="label-caps text-white/20" style={{ fontSize: '0.72rem' }}>
-                  {String(events.findIndex(e => e.id === activeId) + 1).padStart(2, '0')} / {String(events.length).padStart(2, '0')}
-                </span>
-                <button
-                  onClick={() => { const idx = events.findIndex(e => e.id === activeId); if (idx < events.length - 1) setActiveId(events[idx + 1].id) }}
-                  disabled={events.findIndex(e => e.id === activeId) === events.length - 1}
-                  className="label-caps disabled:opacity-15 hover:text-white/80"
-                  style={{ fontSize: '0.75rem', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.4)' }}
-                >NEXT →</button>
-              </div>
+              <span className="sf-window-title">PLANET_LOG // {String(selectedNodeIndex + 1).padStart(2, '0')}</span>
             </div>
-          )}
+
+            <div className="sf-timeline-detail-body">
+              <div className="sf-timeline-detail-planet" style={{ '--planet-color': selectedNode?.planet.color || '#00FFCC' } as CSSProperties}>
+                <img
+                  className="sf-timeline-detail-orb-img"
+                  src={getPlanetSpriteSrc(selectedNode?.planet.sprite || 0)}
+                  alt=""
+                  draggable={false}
+                />
+              </div>
+
+              {active ? (
+                <>
+                  <div className="sf-timeline-detail-meta">
+                    <span style={{ color: getAccent(active) }}>{active.storyDate}</span>
+                    {active.type && <span>{TYPE_LABELS[active.type] || active.type}</span>}
+                  </div>
+
+                  <h2>{active.title}</h2>
+
+                  {active.character && (
+                    <div className="sf-timeline-character" style={{ color: getAccent(active), borderColor: `${getAccent(active)}42` }}>
+                      {active.character === 'both' ? 'Manon × Dylan' : active.character === 'manon' ? 'Manon' : 'Dylan'}
+                    </div>
+                  )}
+
+                  <p className="sf-timeline-description">
+                    {active.description || <span style={{ fontStyle: 'italic', opacity: 0.5 }}>내용 없음</span>}
+                  </p>
+                </>
+              ) : (
+                <div className="sf-timeline-empty-log">
+                  <span className="sf-label-bright">NO LOG ATTACHED</span>
+                  <p>이 행성 노드에는 아직 타임라인 기록이 연결되지 않았습니다.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="sf-timeline-detail-nav">
+              <button onClick={() => stepNode(-1)} disabled={selectedNodeIndex === 0}>{'<'}</button>
+              <span>{String(selectedNodeIndex + 1).padStart(2, '0')} / {String(routeNodes.length).padStart(2, '0')}</span>
+              <button onClick={() => stepNode(1)} disabled={selectedNodeIndex === routeNodes.length - 1}>{'>'}</button>
+            </div>
+          </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
