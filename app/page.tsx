@@ -28,14 +28,28 @@ const shouldSkipHomeBoot = () => (
   typeof window !== 'undefined' && sessionStorage.getItem(SKIP_HOME_BOOT_KEY) === 'true'
 )
 
-const HOME_LAYOUT_WIDTH = 1160
-const HOME_LAYOUT_HEIGHT = 760
+const HOME_LAYOUT_LEFT = 22
+const HOME_LAYOUT_TOP = 46
+const HOME_LAYOUT_BOTTOM = 775
+const HOME_LAYOUT_STATIC_RIGHT = 1082
+const HOME_NAV_LEFT = 779
+const HOME_LAYOUT_HEIGHT = HOME_LAYOUT_BOTTOM - HOME_LAYOUT_TOP
+
+function getHomeLayoutRight(viewportWidth: number) {
+  const navWidth = Math.min(360, Math.max(260, viewportWidth * 0.28)) + 2
+  return Math.max(HOME_LAYOUT_STATIC_RIGHT, HOME_NAV_LEFT + navWidth)
+}
 
 function getHomeLayoutOffset() {
   if (typeof window === 'undefined') return { x: 0, y: 0 }
+  const layoutRight = getHomeLayoutRight(window.innerWidth)
+  const layoutWidth = layoutRight - HOME_LAYOUT_LEFT
+  const centeredLeft = (window.innerWidth - layoutWidth) / 2
+  const centeredTop = (window.innerHeight - HOME_LAYOUT_HEIGHT) / 2
+
   return {
-    x: Math.max(0, Math.round((window.innerWidth - HOME_LAYOUT_WIDTH) / 2)),
-    y: Math.max(0, Math.round((window.innerHeight - HOME_LAYOUT_HEIGHT) / 2)),
+    x: Math.round(centeredLeft - HOME_LAYOUT_LEFT),
+    y: Math.max(0, Math.round(centeredTop - HOME_LAYOUT_TOP)),
   }
 }
 

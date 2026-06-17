@@ -7,10 +7,10 @@ let _kv: VercelKV | null = null
 
 function getClient(): VercelKV {
   if (_kv) return _kv
-  const url = process.env.sombre_KV_REST_API_URL
-  const token = process.env.sombre_KV_REST_API_TOKEN
+  const url = process.env.sombre_KV_REST_API_URL || process.env.KV_REST_API_URL
+  const token = process.env.sombre_KV_REST_API_TOKEN || process.env.KV_REST_API_TOKEN
   if (!url || !token) {
-    throw new Error('KV env not configured: sombre_KV_REST_API_URL / sombre_KV_REST_API_TOKEN')
+    throw new Error('KV env not configured: set KV_REST_API_URL / KV_REST_API_TOKEN')
   }
   _kv = createClient({ url, token })
   return _kv

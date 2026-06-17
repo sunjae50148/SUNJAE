@@ -25,10 +25,20 @@ export async function decrypt(token: string): Promise<any> {
 }
 
 export async function verifyPassword(password: string): Promise<boolean> {
-  const hash = process.env.ADMIN_PASSWORD_HASH
-  if (hash) return bcrypt.compare(password, hash)
-  const plain = process.env.ADMIN_PASSWORD
-  if (plain) return password === plain
+  const candidate = password.trim()
+  const hash = process.env.ADMIN_PASSWORD_HASH?.trim()
+  if (hash) {
+    try {
+      if (await bcrypt.compare(candidate, hash)) return true
+    } catch {
+      console.error('Invalid ADMIN_PASSWORD_HASH configuration')
+    }
+  }
+
+  const plain = process.env.ADMIN_PASSWORD?.trim()
+  if (plain) return candidate === plain
+
+  console.error('Auth env missing: set ADMIN_PASSWORD or ADMIN_PASSWORD_HASH')
   return false
 }
 
