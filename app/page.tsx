@@ -687,7 +687,10 @@ export default function Home() {
         localStorage?.setItem('same_logged_user', username)
         localStorage?.setItem('sunjae_chat_as', username)
         setIsAdmin(true); setLoggedUser(username); setShowLogin(false); setPassword('')
-      } else { alert('ACCESS DENIED') }
+      } else {
+        const data = await res.json().catch(() => null)
+        alert(data?.error ? `ACCESS DENIED: ${data.error}` : `ACCESS DENIED (${res.status})`)
+      }
     } catch { alert('SYSTEM ERROR') }
   }
 
