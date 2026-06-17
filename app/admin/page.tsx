@@ -25,6 +25,48 @@ function toRoman(num: number): string {
   return result || 'I'
 }
 
+const CHARACTER_LABELS = {
+  manon: 'KIM MINJAE',
+  dylan: 'LEE SUN',
+} as const
+
+function normalizeCharacterDisplayName(value = '') {
+  const key = value.trim().toLowerCase()
+  if (key === 'manon') return CHARACTER_LABELS.manon
+  if (key === 'dylan') return CHARACTER_LABELS.dylan
+  return value
+}
+
+function normalizeCharacterPhase(phase: CharacterPhaseData): CharacterPhaseData {
+  return {
+    ...phase,
+    nameKr: normalizeCharacterDisplayName(phase.nameKr),
+    nameEn: normalizeCharacterDisplayName(phase.nameEn),
+  }
+}
+
+function normalizeCharacterData(data: CharacterData): CharacterData {
+  return {
+    ...data,
+    manon: (data.manon || []).map(normalizeCharacterPhase),
+    dylan: (data.dylan || []).map(normalizeCharacterPhase),
+  }
+}
+
+function normalizeAUEntry(au: any) {
+  return {
+    ...au,
+    manon: {
+      ...(au.manon || {}),
+      name: normalizeCharacterDisplayName(au.manon?.name || CHARACTER_LABELS.manon),
+    },
+    dylan: {
+      ...(au.dylan || {}),
+      name: normalizeCharacterDisplayName(au.dylan?.name || CHARACTER_LABELS.dylan),
+    },
+  }
+}
+
 // 이미지를 압축하고 서버에 업로드
 async function uploadImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -124,7 +166,7 @@ const defaultCharacterData: CharacterData = {
   manon: [
     {
       id: 'manon-0', symbol: '❀', label: 'VARIATION · I', name: '[ Première ]', quote: '""',
-      nameKr: 'Manon', nameEn: 'MANON',
+      nameKr: 'KIM MINJAE', nameEn: 'KIM MINJAE',
       age: '', height: '', weight: '',
       personality: [],
       abilityName: '', abilityDesc: '', mainQuote: '""',
@@ -133,7 +175,7 @@ const defaultCharacterData: CharacterData = {
   dylan: [
     {
       id: 'dylan-0', symbol: '✦', label: 'INCANTATION · I', name: '[ Cantus ]', quote: '""',
-      nameKr: 'Dylan', nameEn: 'DYLAN',
+      nameKr: 'LEE SUN', nameEn: 'LEE SUN',
       age: '', height: '', weight: '',
       personality: [],
       abilityName: '', abilityDesc: '', mainQuote: '""',
@@ -469,7 +511,7 @@ function SortableLine({
         <input
           value={line.speaker}
           onChange={(e) => onChange(line.id, 'speaker', e.target.value)}
-          className={`bg-transparent border-b border-ink/10 w-24 text-sm italic focus:outline-none focus:border-[#D9809A] transition-colors ${(line.speaker.includes('Dylan') || line.speaker.includes('딜런') || line.speaker.includes('사드함')) ? 'text-ink/70' : 'text-[#D9809A]'}`}
+          className={`bg-transparent border-b border-ink/10 w-32 text-sm italic focus:outline-none focus:border-[#D9809A] transition-colors ${(line.speaker.includes('LEE SUN') || line.speaker.includes('딜런') || line.speaker.includes('사드함')) ? 'text-ink/70' : 'text-[#D9809A]'}`}
         />
 
         {hasImages && (
@@ -789,7 +831,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/au')
       const data = await res.json()
-      if (Array.isArray(data?.aus)) setAUList(data.aus)
+      if (Array.isArray(data?.aus)) setAUList(data.aus.map(normalizeAUEntry))
     } catch (e) { console.error(e) }
   }
 
@@ -879,8 +921,8 @@ export default function AdminPage() {
       subtitle: '',
       relationship: '',
       themeColor: '#D9809A',
-      manon: { name: 'Manon', image: '', dialogue: '' },
-      dylan: { name: 'Dylan', image: '', dialogue: '' },
+      manon: { name: 'KIM MINJAE', image: '', dialogue: '' },
+      dylan: { name: 'LEE SUN', image: '', dialogue: '' },
     }
     const next = [...auList, newAU]
     saveAUs(next)
@@ -968,7 +1010,7 @@ export default function AdminPage() {
       const res = await fetch('/api/characters')
       const data = await res.json()
       if (data?.manon?.length || data?.dylan?.length) {
-        setCharacterData(data)
+        setCharacterData(normalizeCharacterData(data))
       }
     } catch (e) { console.error(e) }
   }
@@ -997,8 +1039,8 @@ export default function AdminPage() {
         ? `VARIATION · ${toRoman(phases.length + 1)}`
         : `INCANTATION · ${toRoman(phases.length + 1)}`,
       name: '[ 새 페이즈 ]', quote: '""',
-      nameKr: charTab === 'manon' ? 'Manon' : 'Dylan',
-      nameEn: charTab === 'manon' ? 'MANON' : 'DYLAN',
+      nameKr: CHARACTER_LABELS[charTab],
+      nameEn: CHARACTER_LABELS[charTab],
       age: '', height: '', weight: '',
       personality: [],
       abilityName: '', abilityDesc: '', mainQuote: '',
@@ -1497,10 +1539,10 @@ export default function AdminPage() {
           <h1 className="font-display text-center text-[#8B1538] mb-6">ADMIN ACCESS</h1>
           <form onSubmit={async (e) => { e.preventDefault(); try { const res = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: adminUser, password }) }); if (res.ok) { setIsLoggedIn(true); localStorage.setItem('same_admin_login', 'true'); localStorage.setItem('same_logged_user', adminUser); localStorage.setItem('sombre_chat_as', adminUser) } else alert('비밀번호 불일치') } catch { alert('인증 오류') } }}>
             <div className="flex gap-2 mb-4">
-              {['manon', 'dylan'].map(u => (
+              {(['manon', 'dylan'] as const).map(u => (
                 <button key={u} type="button" onClick={() => setAdminUser(u)}
                   className={`flex-1 py-2 rounded border text-sm capitalize transition-all ${adminUser === u ? 'border-[#8B1538] bg-[#8B1538]/10 text-[#8B1538]' : 'border-ink/10 text-ink/40'}`}>
-                  {u}
+                  {CHARACTER_LABELS[u]}
                 </button>
               ))}
             </div>
@@ -1583,11 +1625,11 @@ export default function AdminPage() {
               <div className="flex gap-1">
                 <button onClick={() => { setCharTab('manon'); setCharPhaseIdx(0) }}
                   className={`flex-1 py-2 rounded text-xs font-bold italic ${charTab === 'manon' ? 'bg-[#D9809A]/20 text-[#D9809A] border border-[#D9809A]/50' : 'bg-ink/[0.03] text-ink/40'}`}>
-                  Manon
+                  KIM MINJAE
                 </button>
                 <button onClick={() => { setCharTab('dylan'); setCharPhaseIdx(0) }}
                   className={`flex-1 py-2 rounded text-xs font-bold italic ${charTab === 'dylan' ? 'bg-[#888]/30 text-ink/70 border border-ink/30' : 'bg-ink/[0.03] text-ink/40'}`}>
-                  Dylan
+                  LEE SUN
                 </button>
               </div>
               <div className="space-y-1">
@@ -1656,11 +1698,11 @@ export default function AdminPage() {
               <div className="flex gap-1">
                 <button onClick={() => setGameTab('foreword')}
                   className={`flex-1 py-2 rounded text-xs font-bold italic ${gameTab === 'foreword' ? 'bg-[#D9809A]/20 text-[#D9809A] border border-[#D9809A]/50' : 'bg-ink/[0.03] text-ink/40'}`}>
-                  Foreword (Manon)
+                  Foreword (KIM MINJAE)
                 </button>
                 <button onClick={() => setGameTab('rebuttal')}
                   className={`flex-1 py-2 rounded text-xs font-bold italic ${gameTab === 'rebuttal' ? 'bg-[#888]/30 text-ink/70 border border-ink/30' : 'bg-ink/[0.03] text-ink/40'}`}>
-                  Rebuttal (Dylan)
+                  Rebuttal (LEE SUN)
                 </button>
               </div>
               <p className="text-xs text-ink/25">캐릭터 이미지 위에 클릭 가능한 부위를 추가하고 각 부위에 대사를 지정합니다.</p>
@@ -1908,10 +1950,10 @@ export default function AdminPage() {
                         return (
                           <div className="flex items-center gap-6">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs italic" style={{ color: '#D9809A' }}>Manon:</span>
+                              <span className="text-xs italic" style={{ color: '#D9809A' }}>KIM MINJAE:</span>
                               <button onClick={() => updateSectionAvatar('manonAvatar', undefined)}
                                 className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-[9px] italic ${!sec.manonAvatar ? 'border-[#D9809A] bg-ink/5 text-ink/40' : 'border-transparent bg-ink/[0.03] text-ink/20 hover:bg-ink/[0.06]'}`}>
-                                M
+                                K
                               </button>
                               {(characterData.manonAvatars || []).map((url, i) => (
                                 <button key={i} onClick={() => updateSectionAvatar('manonAvatar', url)}
@@ -1924,10 +1966,10 @@ export default function AdminPage() {
                               )}
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs italic text-ink/60">Dylan:</span>
+                              <span className="text-xs italic text-ink/60">LEE SUN:</span>
                               <button onClick={() => updateSectionAvatar('dylanAvatar', undefined)}
                                 className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-[9px] italic ${!sec.dylanAvatar ? 'border-ink/40 bg-ink/5 text-ink/40' : 'border-transparent bg-ink/[0.03] text-ink/20 hover:bg-ink/[0.06]'}`}>
-                                D
+                                L
                               </button>
                               {(characterData.dylanAvatars || []).map((url, i) => (
                                 <button key={i} onClick={() => updateSectionAvatar('dylanAvatar', url)}
@@ -1953,7 +1995,7 @@ export default function AdminPage() {
                     </DndContext>
                     <button onClick={() => { 
                       const r = {...editingRecord}
-                      r.phases[selectedPhaseIdx].sections[selectedSectionIdx].lines.push({ id: generateId(), speaker: 'Dylan', text: '' })
+                      r.phases[selectedPhaseIdx].sections[selectedSectionIdx].lines.push({ id: generateId(), speaker: 'LEE SUN', text: '' })
                       setEditingRecord(r)
                     }} className="w-full py-4 mt-4 border border-dashed border-ink/10 text-ink/20 hover:text-ink/50 rounded">+ 대사 추가</button>
                   </div>
@@ -2356,7 +2398,7 @@ export default function AdminPage() {
             <div className="h-16 border-b border-ink/10 flex items-center justify-between px-6 bg-bg-cream">
               <div className="flex items-center gap-3">
                 <span className="text-lg font-bold text-ink">
-                  {gameTab === 'foreword' ? 'Foreword by Manon' : 'Rebuttal by Dylan'}
+                  {gameTab === 'foreword' ? 'Foreword by KIM MINJAE' : 'Rebuttal by LEE SUN'}
                 </span>
               </div>
               <div className="flex items-center gap-4">
@@ -2606,7 +2648,7 @@ export default function AdminPage() {
                           <div key={who} className="p-5 bg-white/50 border border-ink/10 rounded-lg space-y-3"
                             style={{ borderLeftColor: accent, borderLeftWidth: '3px' }}>
                             <h3 className="text-sm font-bold" style={{ color: accent }}>
-                              {who === 'manon' ? 'Manon (분홍)' : 'Dylan (무채색)'}
+                              {who === 'manon' ? 'KIM MINJAE (분홍)' : 'LEE SUN (무채색)'}
                             </h3>
 
                             {/* 이미지 업로드 */}
@@ -2777,9 +2819,9 @@ export default function AdminPage() {
                       value={timelineEvents[timelineSelectedIdx].character || 'both'}
                       onChange={e => updateTimelineEvent(timelineSelectedIdx, { character: e.target.value })}
                       className="w-full border border-ink/15 rounded px-3 py-2 text-sm bg-white focus:outline-none">
-                      <option value="both">Manon × Dylan</option>
-                      <option value="manon">Manon</option>
-                      <option value="dylan">Dylan</option>
+                      <option value="both">KIM MINJAE × LEE SUN</option>
+                      <option value="manon">KIM MINJAE</option>
+                      <option value="dylan">LEE SUN</option>
                     </select>
                   </div>
                   <div>
@@ -2913,7 +2955,7 @@ function ChatAdminPanel({ messages, message, onRefresh, onUpdate, onMessageChang
 
                   <div className="flex items-baseline gap-2 mb-0.5">
                     <span className="text-xs font-medium italic" style={{ color }}>
-                      {isManon ? 'Manon' : 'Dylan'}
+                      {isManon ? 'KIM MINJAE' : 'LEE SUN'}
                     </span>
                     <span className="text-[10px] text-ink/30">
                       {new Date(msg.timestamp).toLocaleString('ko-KR', {
@@ -2934,7 +2976,7 @@ function ChatAdminPanel({ messages, message, onRefresh, onUpdate, onMessageChang
                                 ? s === 'manon' ? 'bg-[#D9809A]/20 text-[#D9809A] border border-[#D9809A]/40' : 'bg-gray-100 text-gray-600 border border-gray-300'
                                 : 'bg-ink/[0.03] text-ink/30'
                             }`}>
-                            {s === 'manon' ? 'Manon' : 'Dylan'}
+                            {CHARACTER_LABELS[s]}
                           </button>
                         ))}
                       </div>

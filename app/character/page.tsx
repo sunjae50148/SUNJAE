@@ -27,8 +27,8 @@ interface PhaseData {
 
 const defaultManon: PhaseData[] = [
   {
-    id: 'manon-0', symbol: 'M', label: 'VARIATION · I', name: '[ Premiere ]', quote: '" 비밀이야. "',
-    nameKr: 'Manon', nameEn: 'MANON',
+    id: 'manon-0', symbol: 'K', label: 'VARIATION · I', name: '[ Premiere ]', quote: '" 비밀이야. "',
+    nameKr: 'KIM MINJAE', nameEn: 'KIM MINJAE',
     age: '-', height: '-', weight: '-',
     personality: [], abilityName: '', abilityDesc: '', mainQuote: '""',
   },
@@ -36,8 +36,8 @@ const defaultManon: PhaseData[] = [
 
 const defaultDylan: PhaseData[] = [
   {
-    id: 'dylan-0', symbol: 'D', label: 'INCANTATION · I', name: '[ Cantus ]', quote: '" - "',
-    nameKr: 'Dylan', nameEn: 'DYLAN',
+    id: 'dylan-0', symbol: 'L', label: 'INCANTATION · I', name: '[ Cantus ]', quote: '" - "',
+    nameKr: 'LEE SUN', nameEn: 'LEE SUN',
     age: '-', height: '-', weight: '-',
     personality: [], abilityName: '', abilityDesc: '', mainQuote: '""',
   },
@@ -45,6 +45,25 @@ const defaultDylan: PhaseData[] = [
 
 const MANON_COLOR = '#ff6b9d'
 const DYLAN_COLOR = '#00ccff'
+const CHARACTER_LABELS = {
+  manon: 'KIM MINJAE',
+  dylan: 'LEE SUN',
+} as const
+
+function normalizeCharacterDisplayName(value: string) {
+  const key = value.trim().toLowerCase()
+  if (key === 'manon') return CHARACTER_LABELS.manon
+  if (key === 'dylan') return CHARACTER_LABELS.dylan
+  return value
+}
+
+function normalizePhaseNames(phases: PhaseData[]) {
+  return phases.map(phase => ({
+    ...phase,
+    nameKr: normalizeCharacterDisplayName(phase.nameKr),
+    nameEn: normalizeCharacterDisplayName(phase.nameEn),
+  }))
+}
 
 function useDrag(getInitial: () => { x: number; y: number }) {
   const [pos, setPos] = useState({ x: 0, y: 0 })
@@ -243,8 +262,8 @@ export default function CharacterPage() {
     fetch('/api/characters')
       .then(res => res.json())
       .then(data => {
-        if (data?.manon?.length) setManonPhases(data.manon)
-        if (data?.dylan?.length) setDylanPhases(data.dylan)
+        if (data?.manon?.length) setManonPhases(normalizePhaseNames(data.manon))
+        if (data?.dylan?.length) setDylanPhases(normalizePhaseNames(data.dylan))
       })
       .catch(() => {})
   }, [])
@@ -314,7 +333,7 @@ export default function CharacterPage() {
                 className={character === char ? 'is-active' : ''}
               >
                 <span>0{i + 1}</span>
-                <strong>{char.toUpperCase()}</strong>
+                <strong>{CHARACTER_LABELS[char]}</strong>
               </button>
             ))}
           </div>

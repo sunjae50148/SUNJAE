@@ -7,6 +7,13 @@ import { DialogueRecord, Phase, Section, DialogueLine, TRPGSession, TRPGLine, TR
 import { ROUTE_DIRECTION_KEY, SKIP_HOME_BOOT_KEY, SunjaeChrome, type RouteDirection } from '@/components/SunjaeChrome'
 import { BalletRibbon, MagicSparkle } from '@/components/StageMotifs'
 
+function normalizeSpeakerLabel(speaker: string) {
+  const key = speaker.trim().toLowerCase()
+  if (key === 'manon') return 'KIM MINJAE'
+  if (key === 'dylan') return 'LEE SUN'
+  return speaker
+}
+
 // ═══════════════════════════════════════
 // 이미지 갤러리 모달
 // ═══════════════════════════════════════
@@ -58,8 +65,10 @@ function ImageGalleryModal({
 // ═══════════════════════════════════════
 function DialogueBubble({ line, manonAvatar, dylanAvatar, onImageClick }: { line: DialogueLine; manonAvatar?: string; dylanAvatar?: string; onImageClick?: (imageIndex: number) => void }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const isDylan = line.speaker.includes('사드함') || line.speaker.includes('Dylan') || line.speaker.includes('딜런')
-  const isManon = line.speaker.includes('메디아') || line.speaker.includes('Manon') || line.speaker.includes('마농')
+  const speakerKey = line.speaker.toLowerCase()
+  const speakerLabel = normalizeSpeakerLabel(line.speaker)
+  const isDylan = line.speaker.includes('사드함') || line.speaker.includes('LEE SUN') || line.speaker.includes('딜런') || speakerKey.includes('dylan')
+  const isManon = line.speaker.includes('메디아') || line.speaker.includes('KIM MINJAE') || line.speaker.includes('마농') || speakerKey.includes('manon')
   const isRight = isDylan
   const images = line.images || []
   const avatar = isDylan ? dylanAvatar : isManon ? manonAvatar : undefined
@@ -69,7 +78,7 @@ function DialogueBubble({ line, manonAvatar, dylanAvatar, onImageClick }: { line
   return (
     <div className={`flex gap-2.5 mb-3 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
       {avatar ? (
-        <img src={avatar} alt={line.speaker} className="w-8 h-8 rounded-full object-cover shrink-0" />
+        <img src={avatar} alt={speakerLabel} className="w-8 h-8 rounded-full object-cover shrink-0" />
       ) : (
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] shrink-0"
@@ -80,13 +89,13 @@ function DialogueBubble({ line, manonAvatar, dylanAvatar, onImageClick }: { line
             fontFamily: "'Playfair Display', serif", fontStyle: 'italic',
           }}
         >
-          {isDylan ? 'D' : isManon ? 'M' : '?'}
+          {isDylan ? 'L' : isManon ? 'K' : '?'}
         </div>
       )}
       <div className="max-w-[80%]">
         <div className={`mb-0.5 ${isRight ? 'text-right' : 'text-left'}`}>
           <span className="text-[10px] font-medium" style={{ color: isDylan ? dylanColor : isManon ? manonColor : 'rgba(255,255,255,0.4)' }}>
-            {line.speaker}
+            {speakerLabel}
           </span>
         </div>
         <div
@@ -481,8 +490,8 @@ export default function RecordPage() {
     ? selectedSection?.title || ''
     : selectedTRPGSession?.title || ''
 
-  const ACCENT = '#D9809A'      // Manon — ballet pink
-  const TRPG_ACCENT = '#C8C8C8' // Dylan — grayscale
+  const ACCENT = '#D9809A'      // KIM MINJAE — ballet pink
+  const TRPG_ACCENT = '#C8C8C8' // LEE SUN — grayscale
 
   return (
     <div className="fixed inset-0 z-[60] bg-[#050a0d] overflow-hidden text-white">

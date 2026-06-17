@@ -22,7 +22,7 @@ interface GameSection {
 }
 
 const ACCENT = '#D9809A'
-const CHARACTER = 'Manon'
+const CHARACTER = 'KIM MINJAE'
 
 export default function ForewordPage() {
   const router = useRouter()
@@ -95,7 +95,7 @@ export default function ForewordPage() {
   return (
     <div className="fixed inset-0 z-[60] bg-[#050a0d] overflow-hidden text-white">
       <SunjaeChrome
-        interfaceLabel="MANON_INTERVIEW"
+        interfaceLabel="KIM_MINJAE_INTERVIEW"
         previousHref={null}
         nextHref={null}
         onNavigate={navigateInterface}

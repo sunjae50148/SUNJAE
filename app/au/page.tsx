@@ -1,12 +1,33 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
 import { ROUTE_DIRECTION_KEY, SKIP_HOME_BOOT_KEY, SunjaeChrome, type RouteDirection } from '@/components/SunjaeChrome'
 import type { AU, AUData } from '@/app/api/au/route'
 
 const MANON_COLOR = '#D9809A'
 const DYLAN_COLOR = '#C8C8C8'
+const PLANET_COUNT = 30
+const CHARACTER_LABELS = {
+  manon: 'KIM MINJAE',
+  dylan: 'LEE SUN',
+} as const
+
+function getUniverseIcon(index: number) {
+  return `/assets/timeline/planet-${String((index * 7) % PLANET_COUNT).padStart(2, '0')}.png`
+}
+
+function getInitial(name: string | undefined, fallback: string) {
+  return (name || fallback).charAt(0)
+}
+
+function getDisplayName(name: string | undefined, fallback: string) {
+  const raw = (name || fallback).trim()
+  const key = raw.toLowerCase()
+  if (key === 'manon') return CHARACTER_LABELS.manon
+  if (key === 'dylan') return CHARACTER_LABELS.dylan
+  return raw || fallback
+}
 
 export default function AUPage() {
   const router = useRouter()
@@ -53,30 +74,18 @@ export default function AUPage() {
         onAccess={() => navigateInterface('/', 'prev')}
       />
 
-      {/* Scrollable card area — inside curtains */}
       <div className={`absolute inset-0 sf-route-slide sf-route-${routeDirection} ${routeReady ? 'sf-route-slide-ready' : ''} ${routeLeaving ? 'sf-route-slide-leaving' : ''}`}>
-        <div className="absolute inset-0 overflow-y-auto" style={{
-          paddingTop: 'clamp(72px, 9vw, 110px)',
-          paddingBottom: 'clamp(54px, 6vh, 76px)',
-          paddingLeft: '8%',
-          paddingRight: '8%',
-          scrollbarWidth: 'thin',
-          scrollbarColor: 'rgba(0,255,204,0.18) transparent',
-        }}>
+        <div className="sf-au-scroll">
           {loading ? (
-            <div className="flex items-center justify-center h-40">
+            <div className="sf-au-loading">
               <div className="w-6 h-6 border border-white/10 border-t-white/40 rounded-full animate-spin" />
             </div>
           ) : aus.length === 0 ? (
             <EmptyState />
           ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 420px), 1fr))',
-              gap: 'clamp(16px, 2vw, 28px)',
-            }}>
+            <div className={`sf-au-grid ${mounted ? 'sf-windows-ready' : ''}`}>
               {aus.map((au, idx) => (
-                <AUCard key={au.id} au={au} idx={idx} />
+                <AUCard key={au.id} au={au} idx={idx} mounted={mounted} />
               ))}
             </div>
           )}
@@ -86,182 +95,136 @@ export default function AUPage() {
   )
 }
 
-function AUCard({ au, idx }: { au: AU; idx: number }) {
+function AUCard({ au, idx, mounted }: { au: AU; idx: number; mounted: boolean }) {
   const accent = au.themeColor || MANON_COLOR
+  const cardStyle = {
+    '--au-accent': accent,
+    '--au-manon': MANON_COLOR,
+    '--au-dylan': DYLAN_COLOR,
+  } as CSSProperties
 
   return (
-    <div className="relative" style={{
-      background: 'rgba(255,255,255,0.02)',
-      border: '1px solid rgba(255,255,255,0.08)',
-    }}>
-      {/* Top accent bar */}
-      <div style={{ height: '3px', background: accent, opacity: 0.7 }} />
-
-      {/* Header: title + subtitle */}
-      <div className="flex items-center justify-between px-4 pt-3 pb-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2">
-            {/* Star decoration */}
-            <svg width="10" height="10" viewBox="0 0 10 10" style={{ flexShrink: 0 }}>
-              <path d="M5,1 L5.8,3.8 L8.5,3.8 L6.3,5.5 L7.1,8.3 L5,6.7 L2.9,8.3 L3.7,5.5 L1.5,3.8 L4.2,3.8 Z"
-                fill={accent} opacity="0.5" />
-            </svg>
-            <h3 className="heading-display truncate" style={{
-              fontSize: 'clamp(1rem, 1.5vw, 1.3rem)',
-              color: 'rgba(255,255,255,0.9)',
-              fontStyle: 'italic', lineHeight: 1.2,
-            }}>
-              {au.title}
-            </h3>
-          </div>
-          {au.subtitle && (
-            <p className="heading-condensed mt-0.5 pl-5" style={{
-              fontSize: '0.82rem', color: 'rgba(255,255,255,0.35)',
-              fontStyle: 'italic',
-            }}>
-              {au.subtitle}
-            </p>
-          )}
+    <article className={`sf-window sf-au-card sf-win-anim sf-win-anim-${(idx % 9) + 1} ${mounted ? '' : 'opacity-0'}`} style={cardStyle}>
+      <div className="sf-window-header sf-au-card-header">
+        <div className="sf-window-dots">
+          <span className="sf-dot sf-dot-red" />
+          <span className="sf-dot sf-dot-yellow" />
+          <span className="sf-dot sf-dot-green" />
         </div>
-        <span className="label-caps" style={{
-          fontSize: '0.72rem', letterSpacing: '0.18em',
-          color: 'rgba(255,255,255,0.2)',
-        }}>
-          {String(idx + 1).padStart(2, '0')}
-        </span>
+        <span className="sf-window-title">AU_FILE_{String(idx + 1).padStart(2, '0')}</span>
+        <span className="sf-au-card-signal">WORLD: ACTIVE</span>
       </div>
 
-      {/* Divider */}
-      <div className="mx-4 sketch-jitter-line" style={{
-        height: '1px', background: 'rgba(255,255,255,0.06)', filter: 'url(#sketchy)',
-      }} />
-
-      {/* Characters row: image + name + relationship + image + name */}
-      <div className="flex items-stretch">
-        {/* Manon (left) */}
-        <div className="flex-1 flex flex-col items-center p-3 min-w-0">
-          <div className="relative w-full mb-2 overflow-hidden" style={{
-            aspectRatio: '1',
-            border: `1px solid ${MANON_COLOR}30`,
-            background: 'rgba(255,255,255,0.01)',
-          }}>
-            {au.manon.image ? (
-              <img src={au.manon.image} alt={au.manon.name || 'Manon'}
-                className="absolute inset-0 w-full h-full object-cover object-top" />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="heading-display" style={{
-                  color: `${MANON_COLOR}20`, fontSize: '3rem', fontStyle: 'italic',
-                }}>{(au.manon.name || 'M').charAt(0)}</span>
-              </div>
-            )}
+      <div className="sf-au-card-body">
+        <div className="sf-au-title-row">
+          <div className="sf-au-orbit-icon">
+            <img src={getUniverseIcon(idx)} alt="" draggable={false} />
           </div>
-          <p className="heading-display text-center" style={{
-            color: MANON_COLOR, fontSize: '0.88rem', fontStyle: 'italic',
-            lineHeight: 1.2,
-          }}>{au.manon.name || 'Manon'}</p>
+          <div className="sf-au-title-copy">
+            <h3>{au.title}</h3>
+            {au.subtitle && <p>{au.subtitle}</p>}
+          </div>
+          <span className="sf-au-index">{String(idx + 1).padStart(2, '0')}</span>
         </div>
 
-        {/* Center: relationship */}
-        <div className="flex flex-col items-center justify-center px-2" style={{ minWidth: '60px' }}>
-          <span className="block w-px h-6 sketch-jitter-line" style={{
-            background: 'rgba(255,255,255,0.1)', filter: 'url(#sketchy)',
-          }} />
-          <div className="py-2 text-center">
-            <span className="heading-display" style={{
-              color: accent, fontSize: 'clamp(0.88rem, 1vw, 0.98rem)',
-              fontStyle: 'italic', whiteSpace: 'nowrap',
-            }}>{au.relationship || '—'}</span>
+        <div className="sf-au-divider" />
+
+        <div className="sf-au-cast-grid">
+          <AUCharacterPanel
+            person={au.manon}
+            fallbackName="KIM MINJAE"
+            color={MANON_COLOR}
+            side="manon"
+          />
+
+          <div className="sf-au-relationship">
+            <span className="sf-au-relation-line" />
+            <div className="sf-au-relation-core">{au.relationship || '—'}</div>
+            <span className="sf-au-relation-line" />
           </div>
-          <span className="block w-px h-6 sketch-jitter-line" style={{
-            background: 'rgba(255,255,255,0.1)', filter: 'url(#sketchy)',
-          }} />
+
+          <AUCharacterPanel
+            person={au.dylan}
+            fallbackName="LEE SUN"
+            color={DYLAN_COLOR}
+            side="dylan"
+          />
         </div>
 
-        {/* Dylan (right) */}
-        <div className="flex-1 flex flex-col items-center p-3 min-w-0">
-          <div className="relative w-full mb-2 overflow-hidden" style={{
-            aspectRatio: '1',
-            border: `1px solid ${DYLAN_COLOR}25`,
-            background: 'rgba(255,255,255,0.01)',
-          }}>
-            {au.dylan.image ? (
-              <img src={au.dylan.image} alt={au.dylan.name || 'Dylan'}
-                className="absolute inset-0 w-full h-full object-cover object-top" />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="heading-display" style={{
-                  color: `${DYLAN_COLOR}20`, fontSize: '3rem', fontStyle: 'italic',
-                }}>{(au.dylan.name || 'D').charAt(0)}</span>
-              </div>
-            )}
-          </div>
-          <p className="heading-display text-center" style={{
-            color: DYLAN_COLOR, fontSize: '0.88rem', fontStyle: 'italic',
-            lineHeight: 1.2,
-          }}>{au.dylan.name || 'Dylan'}</p>
-        </div>
-      </div>
-
-      {/* Dialogues */}
-      {(au.manon.dialogue || au.dylan.dialogue) && (
-        <>
-          <div className="mx-4 sketch-jitter-line" style={{
-            height: '1px', background: 'rgba(255,255,255,0.06)', filter: 'url(#sketchy)',
-          }} />
-          <div className="flex gap-3 p-4">
-            {/* Manon dialogue */}
-            <div className="flex-1 min-w-0">
+        {(au.manon.dialogue || au.dylan.dialogue) && (
+          <>
+            <div className="sf-au-divider" />
+            <div className="sf-au-dialogue-grid">
               {au.manon.dialogue && (
-                <div style={{
-                  padding: '8px 10px',
-                  background: `${MANON_COLOR}08`,
-                  border: `1px solid ${MANON_COLOR}18`,
-                }}>
-                  <p className="text-editorial whitespace-pre-wrap" style={{
-                    color: 'rgba(255,255,255,0.65)',
-                    fontSize: 'clamp(0.85rem, 0.9vw, 0.92rem)',
-                    lineHeight: 1.7,
-                  }}>{au.manon.dialogue}</p>
-                </div>
+                <AUDialogue text={au.manon.dialogue} side="manon" />
               )}
-            </div>
-            {/* Dylan dialogue */}
-            <div className="flex-1 min-w-0">
               {au.dylan.dialogue && (
-                <div style={{
-                  padding: '8px 10px',
-                  background: `${DYLAN_COLOR}06`,
-                  border: `1px solid ${DYLAN_COLOR}15`,
-                }}>
-                  <p className="text-editorial whitespace-pre-wrap" style={{
-                    color: 'rgba(255,255,255,0.65)',
-                    fontSize: 'clamp(0.85rem, 0.9vw, 0.92rem)',
-                    lineHeight: 1.7, textAlign: 'right',
-                  }}>{au.dylan.dialogue}</p>
-                </div>
+                <AUDialogue text={au.dylan.dialogue} side="dylan" />
               )}
             </div>
+          </>
+        )}
+      </div>
+    </article>
+  )
+}
+
+function AUCharacterPanel({
+  person,
+  fallbackName,
+  color,
+  side,
+}: {
+  person: AU['manon']
+  fallbackName: string
+  color: string
+  side: 'manon' | 'dylan'
+}) {
+  const displayName = getDisplayName(person.name, fallbackName)
+
+  return (
+    <div className={`sf-au-person sf-au-person-${side}`} style={{ '--person-color': color } as CSSProperties}>
+      <div className="sf-au-portrait">
+        {person.image ? (
+          <img src={person.image} alt={displayName} />
+        ) : (
+          <div className="sf-au-portrait-fallback">
+            <span>{getInitial(displayName, fallbackName)}</span>
           </div>
-        </>
-      )}
+        )}
+      </div>
+      <p>{displayName}</p>
+    </div>
+  )
+}
+
+function AUDialogue({ text, side }: { text: string; side: 'manon' | 'dylan' }) {
+  return (
+    <div className={`sf-au-quote sf-au-quote-${side}`}>
+      <p>{text}</p>
     </div>
   )
 }
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center gap-6 py-24">
-      <span className="block h-px w-16" style={{ background: 'rgba(255,255,255,0.15)' }} />
+    <div className="sf-window sf-au-empty">
+      <div className="sf-window-header">
+        <div className="sf-window-dots">
+          <span className="sf-dot sf-dot-red" />
+          <span className="sf-dot sf-dot-yellow" />
+          <span className="sf-dot sf-dot-green" />
+        </div>
+        <span className="sf-window-title">AU_DIRECTORY</span>
+      </div>
       <div className="text-center">
-        <p className="heading-display text-white/40" style={{ fontSize: '2rem', fontStyle: 'italic' }}>
+        <p className="heading-display text-white/40" style={{ fontSize: '2rem' }}>
           No universes yet.
         </p>
         <p className="heading-condensed text-white/20 mt-3" style={{ fontStyle: 'italic', fontSize: '0.85rem' }}>
           Add an alternate world from the admin panel.
         </p>
       </div>
-      <span className="block h-px w-16" style={{ background: 'rgba(255,255,255,0.15)' }} />
     </div>
   )
 }

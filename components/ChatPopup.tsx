@@ -6,6 +6,7 @@ import type { ChatMessage } from '@/app/api/chat/route'
 const MANON_COLOR = '#D9809A'
 const DYLAN_COLOR = '#C8C8C8'
 const SENDER_COLORS = { manon: MANON_COLOR, dylan: DYLAN_COLOR }
+const SENDER_LABELS = { manon: 'KIM MINJAE', dylan: 'LEE SUN' } as const
 
 function formatTime(ts: number) {
   return new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
@@ -192,7 +193,7 @@ export default function ChatPopup() {
                     }}
                     title="캐릭터 변경"
                   >
-                    {chatAs === 'manon' ? 'Manon' : 'Dylan'} ↺
+                    {chatAs ? SENDER_LABELS[chatAs] : ''} ↺
                   </button>
                   <button
                     onClick={() => setOpen(false)}
@@ -227,7 +228,7 @@ export default function ChatPopup() {
                             color,
                             letterSpacing: '0.04em',
                           }}>
-                            {msg.sender === 'manon' ? 'Manon' : 'Dylan'}
+                            {SENDER_LABELS[msg.sender]}
                           </span>
                           <span style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.2)' }}>
                             {formatTime(msg.timestamp)}
@@ -296,7 +297,7 @@ export default function ChatPopup() {
                   ref={inputRef}
                   value={input}
                   onChange={e => setInput(e.target.value)}
-                  placeholder={`${chatAs === 'manon' ? 'Manon' : 'Dylan'} says...`}
+                  placeholder={`${chatAs ? SENDER_LABELS[chatAs] : ''} says...`}
                   disabled={sending}
                   style={{
                     flex: 1,
@@ -346,7 +347,7 @@ function SelectScreen({ onSelect }: { onSelect: (c: 'manon' | 'dylan') => void }
 
       {/* Character cards */}
       <div className="flex flex-1 min-h-0">
-        {/* Manon */}
+        {/* KIM MINJAE */}
         <button
           onClick={() => onSelect('manon')}
           className="flex-1 flex flex-col items-center justify-center gap-3 group transition-all duration-300"
@@ -373,13 +374,13 @@ function SelectScreen({ onSelect }: { onSelect: (c: 'manon' | 'dylan') => void }
               fontSize: '1.4rem',
               color: MANON_COLOR,
               opacity: 0.7,
-            }}>M</span>
+            }}>K</span>
           </div>
           <div className="text-center">
             <p className="heading-display" style={{
               fontSize: '1rem', fontStyle: 'italic',
               color: MANON_COLOR, letterSpacing: '-0.01em',
-            }}>Manon</p>
+            }}>KIM MINJAE</p>
             <p className="label-caps mt-1" style={{
               fontSize: '0.38rem', letterSpacing: '0.18em',
               color: 'rgba(255,255,255,0.2)',
@@ -387,7 +388,7 @@ function SelectScreen({ onSelect }: { onSelect: (c: 'manon' | 'dylan') => void }
           </div>
         </button>
 
-        {/* Dylan */}
+        {/* LEE SUN */}
         <button
           onClick={() => onSelect('dylan')}
           className="flex-1 flex flex-col items-center justify-center gap-3 transition-all duration-300"
@@ -412,13 +413,13 @@ function SelectScreen({ onSelect }: { onSelect: (c: 'manon' | 'dylan') => void }
               fontSize: '1.4rem',
               color: DYLAN_COLOR,
               opacity: 0.7,
-            }}>D</span>
+            }}>L</span>
           </div>
           <div className="text-center">
             <p className="heading-display" style={{
               fontSize: '1rem', fontStyle: 'italic',
               color: DYLAN_COLOR, letterSpacing: '-0.01em',
-            }}>Dylan</p>
+            }}>LEE SUN</p>
             <p className="label-caps mt-1" style={{
               fontSize: '0.38rem', letterSpacing: '0.18em',
               color: 'rgba(255,255,255,0.2)',

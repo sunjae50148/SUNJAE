@@ -22,7 +22,7 @@ interface GameSection {
 }
 
 const ACCENT = '#C8C8C8'
-const CHARACTER = 'Dylan'
+const CHARACTER = 'LEE SUN'
 
 export default function RebuttalPage() {
   const router = useRouter()
@@ -95,7 +95,7 @@ export default function RebuttalPage() {
   return (
     <div className="fixed inset-0 z-[60] bg-[#050a0d] overflow-hidden text-white">
       <SunjaeChrome
-        interfaceLabel="DYLAN_INTERVIEW"
+        interfaceLabel="LEE_SUN_INTERVIEW"
         previousHref={null}
         nextHref={null}
         onNavigate={navigateInterface}

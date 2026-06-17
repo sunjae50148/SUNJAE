@@ -9,14 +9,14 @@ const ChatPopupDynamic = dynamic(() => import('@/components/ChatPopup'), { ssr: 
 
 const NAV_ITEMS = [
   { label: 'PROLOGUE', sub: 'Wizard and Ballerina', href: '/', id: 'PRO-001' },
-  { label: 'CHARACTERS', sub: 'Manon × Dylan', href: '/character', id: 'CHR-002' },
+  { label: 'CHARACTERS', sub: 'KIM MINJAE × LEE SUN', href: '/character', id: 'CHR-002' },
   { label: 'RECORDS', sub: 'Roleplay Session Archive', href: '/record', id: 'REC-003' },
   { label: 'TIMELINE', sub: 'Doomsday', href: '/timeline', id: 'TML-004' },
   { label: 'UNIVERSES', sub: 'Alternate Worlds', href: '/au', id: 'UNI-005' },
 ]
 const EXTRAS = [
-  { label: 'INTERVIEW // MANON', href: '/foreword' },
-  { label: 'INTERVIEW // DYLAN', href: '/rebuttal' },
+  { label: 'INTERVIEW // KIM MINJAE', href: '/foreword' },
+  { label: 'INTERVIEW // LEE SUN', href: '/rebuttal' },
 ]
 const ADMIN_ITEMS = [
   { label: 'ADMIN', sub: 'Stage Door', href: '/admin' },
@@ -28,19 +28,48 @@ const shouldSkipHomeBoot = () => (
   typeof window !== 'undefined' && sessionStorage.getItem(SKIP_HOME_BOOT_KEY) === 'true'
 )
 
+const HOME_LAYOUT_WIDTH = 1160
+const HOME_LAYOUT_HEIGHT = 760
+
+function getHomeLayoutOffset() {
+  if (typeof window === 'undefined') return { x: 0, y: 0 }
+  return {
+    x: Math.max(0, Math.round((window.innerWidth - HOME_LAYOUT_WIDTH) / 2)),
+    y: Math.max(0, Math.round((window.innerHeight - HOME_LAYOUT_HEIGHT) / 2)),
+  }
+}
+
+function useHomeLayoutOffset() {
+  const [offset, setOffset] = useState(getHomeLayoutOffset)
+
+  useEffect(() => {
+    const update = () => setOffset(getHomeLayoutOffset())
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+
+  return offset
+}
+
 /* ── useDrag ── */
-function useDrag(getInitial: () => { x: number; y: number }) {
+function useDrag(getInitial: () => { x: number; y: number }, layoutKey?: string) {
   const [pos, setPos] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
   const offset = useRef({ x: 0, y: 0 })
   const inited = useRef(false)
+  const manuallyMoved = useRef(false)
 
   useEffect(() => {
-    if (!inited.current) { setPos(getInitial()); inited.current = true }
-  }, [getInitial])
+    if (!inited.current || !manuallyMoved.current) {
+      setPos(getInitial())
+      inited.current = true
+    }
+  }, [layoutKey])
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button, input, a, canvas')) return
+    manuallyMoved.current = true
     setDragging(true)
     offset.current = { x: e.clientX - pos.x, y: e.clientY - pos.y }
   }, [pos])
@@ -58,12 +87,12 @@ function useDrag(getInitial: () => { x: number; y: number }) {
 }
 
 /* ── DragWindow ── */
-function DragWindow({ id, title, children, getInitialPos, z, onFocus, minimizable, className = '' }: {
+function DragWindow({ id, title, children, getInitialPos, z, onFocus, minimizable, className = '', layoutKey }: {
   id: string; title: string; children: React.ReactNode
   getInitialPos: () => { x: number; y: number }; z: number
-  onFocus: (id: string) => void; minimizable?: boolean; className?: string
+  onFocus: (id: string) => void; minimizable?: boolean; className?: string; layoutKey?: string
 }) {
-  const { pos, onMouseDown, dragging } = useDrag(getInitialPos)
+  const { pos, onMouseDown, dragging } = useDrag(getInitialPos, layoutKey)
   const [minimized, setMinimized] = useState(false)
   return (
     <div className={`sf-window ${className} ${dragging ? 'sf-window-dragging' : ''}`}
@@ -589,6 +618,12 @@ export default function Home() {
   const [winOrder, setWinOrder] = useState<Record<string, number>>({
     title: 66, nav: 67, radar: 58, sliders: 51, matrix: 54, info: 64, hex: 62, stars: 22, planet: 57, ocean: 52,
   })
+  const homeLayoutOffset = useHomeLayoutOffset()
+  const homeLayoutKey = `${homeLayoutOffset.x}:${homeLayoutOffset.y}`
+  const homePos = useCallback((x: number, y: number) => ({
+    x: x + homeLayoutOffset.x,
+    y: y + homeLayoutOffset.y,
+  }), [homeLayoutOffset])
 
   const bringToFront = useCallback((id: string) => {
     setWinOrder(prev => ({ ...prev, [id]: Math.max(...Object.values(prev)) + 1 }))
@@ -677,20 +712,20 @@ export default function Home() {
 
         {/* ── TITLE ── */}
         <DragWindow id="title" title="MAIN // PROJECT_ZETA"
-          getInitialPos={() => ({ x: 256, y: 180 })}
+          getInitialPos={() => homePos(256, 180)} layoutKey={homeLayoutKey}
           z={winOrder.title} onFocus={bringToFront} className="sf-win-anim sf-win-anim-5">
           <div className="flex flex-col items-center py-6 px-8">
             <span className="sf-label tracking-[0.5em] mb-3">PROJECT_ZETA</span>
             <h1 className="sf-title-main"><GlitchText text="SUNJAE" /></h1>
             <div className="sf-line my-4" />
             <p className="sf-label-bright tracking-[0.25em]">WIZARD AND BALLERINA</p>
-            <p className="sf-label mt-2">of <em>Dylan</em> × <em>Manon</em></p>
+            <p className="sf-label mt-2">of <em>LEE SUN</em> × <em>KIM MINJAE</em></p>
           </div>
         </DragWindow>
 
         {/* ── STAR GRID + STATUS (reference-inspired) ── */}
         <DragWindow id="stars" title="RELAY_STATUS"
-          getInitialPos={() => ({ x: 22, y: 54 })}
+          getInitialPos={() => homePos(22, 54)} layoutKey={homeLayoutKey}
           z={winOrder.stars} onFocus={bringToFront} className="sf-win-anim sf-win-anim-8">
           <div className="p-3 flex flex-col gap-3">
             <div className="flex items-start gap-3">
@@ -713,7 +748,7 @@ export default function Home() {
 
         {/* ── RADAR ── */}
         <DragWindow id="radar" title="PROXIMITY_SCAN"
-          getInitialPos={() => ({ x: 600, y: 31 })}
+          getInitialPos={() => homePos(600, 31)} layoutKey={homeLayoutKey}
           z={winOrder.radar} onFocus={bringToFront} className="sf-win-anim sf-win-anim-9">
           <div className="flex flex-col items-center p-2">
             <LiveRadar />
@@ -723,7 +758,7 @@ export default function Home() {
 
         {/* ── NAV ── */}
         <DragWindow id="nav" title="NAVIGATION_INDEX"
-          getInitialPos={() => ({ x: 779, y: 308 })}
+          getInitialPos={() => homePos(779, 308)} layoutKey={homeLayoutKey}
           z={winOrder.nav} onFocus={bringToFront} className="sf-win-anim sf-win-anim-4">
           <div className="py-1" style={{ width: 'clamp(260px, 28vw, 360px)' }}>
             {NAV_ITEMS.map((item, i) => (
@@ -763,7 +798,7 @@ export default function Home() {
 
         {/* ── SLIDERS ── */}
         <DragWindow id="sliders" title="PARAMETERS"
-          getInitialPos={() => ({ x: 64, y: 402 })}
+          getInitialPos={() => homePos(64, 402)} layoutKey={homeLayoutKey}
           z={winOrder.sliders} onFocus={bringToFront} className="sf-win-anim sf-win-anim-3">
           <div className="p-3" style={{ width: 'clamp(230px, 24vw, 310px)' }}>
             <InteractiveSliders />
@@ -772,7 +807,7 @@ export default function Home() {
 
         {/* ── DATA MATRIX ── */}
         <DragWindow id="matrix" title="DATA_MATRIX" minimizable
-          getInitialPos={() => ({ x: 459, y: 471 })}
+          getInitialPos={() => homePos(459, 471)} layoutKey={homeLayoutKey}
           z={winOrder.matrix} onFocus={bringToFront} className="sf-win-anim sf-win-anim-2">
           <div className="p-3 flex flex-col items-center gap-2">
             <LiveDataMatrix />
@@ -782,7 +817,7 @@ export default function Home() {
 
         {/* ── HEX STREAM ── */}
         <DragWindow id="hex" title="MEMORY_DUMP" minimizable
-          getInitialPos={() => ({ x: 570, y: 580 })}
+          getInitialPos={() => homePos(570, 580)} layoutKey={homeLayoutKey}
           z={winOrder.hex} onFocus={bringToFront} className="sf-win-anim sf-win-anim-1">
           <div className="p-3">
             <HexStream />
@@ -791,7 +826,7 @@ export default function Home() {
 
         {/* ── SYSTEM INFO ── */}
         <DragWindow id="info" title="SYSTEM_INFO"
-          getInitialPos={() => ({ x: 764, y: 558 })}
+          getInitialPos={() => homePos(764, 558)} layoutKey={homeLayoutKey}
           z={winOrder.info} onFocus={bringToFront} className="sf-win-anim sf-win-anim-1">
           <div className="p-3 flex flex-col gap-[8px]">
             {[['//PROJECT_', 'SUNJAE'], ['//VERSION_', 'v2.4.1'], ['//STATUS_', 'OPERATIONAL'], ['//BUILD_', '2024.12.01'], ['//AUTHOR_', 'SUNJAE']].map(([k, v]) => (
@@ -805,7 +840,7 @@ export default function Home() {
 
         {/* ── PLANET ── */}
         <DragWindow id="planet" title="PLANET_ZETA-7"
-          getInitialPos={() => ({ x: 826, y: 44 })}
+          getInitialPos={() => homePos(826, 44)} layoutKey={homeLayoutKey}
           z={winOrder.planet} onFocus={bringToFront} className="sf-win-anim sf-win-anim-7">
           <div className="p-2 flex flex-col gap-2">
             <Planet />
@@ -819,7 +854,7 @@ export default function Home() {
 
         {/* ── OCEAN WAVE ── */}
         <DragWindow id="ocean" title="TIDAL_MONITOR"
-          getInitialPos={() => ({ x: 115, y: 518 })}
+          getInitialPos={() => homePos(115, 518)} layoutKey={homeLayoutKey}
           z={winOrder.ocean} onFocus={bringToFront} className="sf-win-anim sf-win-anim-1">
           <div className="p-2 flex flex-col gap-2">
             <OceanWave />
@@ -852,7 +887,7 @@ export default function Home() {
                       border: `1px solid ${username === u ? '#00FFCC' : 'rgba(0,255,204,0.2)'}`,
                       color: username === u ? '#00FFCC' : 'rgba(255,255,255,0.4)',
                       background: username === u ? 'rgba(0,255,204,0.08)' : 'transparent',
-                    }}>{u.toUpperCase()}</button>
+                    }}>{u === 'manon' ? 'KIM MINJAE' : 'LEE SUN'}</button>
                 ))}
               </div>
               <input type="password" placeholder="ENTER_KEY" value={password}

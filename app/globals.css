@@ -1063,6 +1063,343 @@ button:hover .name-sadham { color: #EFEFEF; }
   }
 }
 
+/* ── AU universe cards ── */
+.sf-au-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: clamp(72px, 9vw, 104px) clamp(18px, 7vw, 112px) clamp(58px, 7vh, 84px);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,255,204,0.18) transparent;
+}
+
+.sf-au-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 390px), 1fr));
+  gap: clamp(16px, 2vw, 26px);
+  max-width: 1500px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.sf-au-loading {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sf-au-card {
+  --au-accent: #D9809A;
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--au-accent) 34%, rgba(0,255,204,0.24));
+  background:
+    radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--au-accent) 12%, transparent), transparent 36%),
+    linear-gradient(135deg, rgba(0,255,204,0.04), rgba(0,0,0,0.26) 42%, rgba(0,255,204,0.025)),
+    rgba(0, 5, 8, 0.88);
+}
+
+.sf-au-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.2) 0 1px, transparent 1px 5px),
+    linear-gradient(90deg, color-mix(in srgb, var(--au-accent) 10%, transparent), transparent 20%, transparent 80%, rgba(0,255,204,0.06));
+  mix-blend-mode: screen;
+  opacity: 0.45;
+}
+
+.sf-au-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 34px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--au-accent) 74%, transparent), transparent);
+  opacity: 0.82;
+}
+
+.sf-au-card-header {
+  position: relative;
+  z-index: 2;
+}
+
+.sf-au-card-signal {
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', 'Space Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  color: color-mix(in srgb, var(--au-accent) 58%, rgba(0,255,204,0.42));
+}
+
+.sf-au-card-body {
+  position: relative;
+  z-index: 1;
+  padding: 16px;
+}
+
+.sf-au-title-row {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.sf-au-orbit-icon {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--au-accent) 26%, transparent);
+  background: rgba(0,0,0,0.22);
+  box-shadow: inset 0 0 16px rgba(0,255,204,0.035), 0 0 12px color-mix(in srgb, var(--au-accent) 16%, transparent);
+}
+
+.sf-au-orbit-icon::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px dashed color-mix(in srgb, var(--au-accent) 28%, transparent);
+  transform: rotate(-12deg);
+}
+
+.sf-au-orbit-icon img {
+  position: relative;
+  z-index: 1;
+  width: 122%;
+  height: 122%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--au-accent) 45%, transparent));
+}
+
+.sf-au-title-copy {
+  min-width: 0;
+}
+
+.sf-au-title-copy h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Pixel Digivolve', 'JetBrains Mono', monospace;
+  font-size: clamp(1rem, 1.4vw, 1.28rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--au-accent) 28%, transparent);
+}
+
+.sf-au-title-copy p {
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Noto Serif KR', 'Gowun Batang', serif;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: rgba(255,255,255,0.34);
+}
+
+.sf-au-index {
+  align-self: start;
+  font-family: 'Pixel Digivolve', 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, var(--au-accent) 46%, rgba(255,255,255,0.22));
+}
+
+.sf-au-divider {
+  height: 1px;
+  margin: 14px 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--au-accent) 28%, transparent), rgba(0,255,204,0.14), transparent);
+}
+
+.sf-au-cast-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.sf-au-person {
+  --person-color: #D9809A;
+  min-width: 0;
+  display: grid;
+  gap: 9px;
+}
+
+.sf-au-portrait {
+  position: relative;
+  aspect-ratio: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--person-color) 36%, transparent);
+  background:
+    linear-gradient(rgba(0,255,204,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,204,0.03) 1px, transparent 1px),
+    rgba(0,0,0,0.28);
+  background-size: 18px 18px;
+  box-shadow: inset 0 0 18px rgba(0,0,0,0.34), 0 0 12px color-mix(in srgb, var(--person-color) 10%, transparent);
+}
+
+.sf-au-portrait::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.18) 0 1px, transparent 1px 4px),
+    radial-gradient(circle at 50% 28%, transparent 0 38%, rgba(0,0,0,0.42) 100%);
+  mix-blend-mode: multiply;
+}
+
+.sf-au-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  filter: saturate(0.72) contrast(1.08) brightness(0.72);
+}
+
+.sf-au-portrait-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.sf-au-portrait-fallback span {
+  font-family: 'Pixel Digivolve', 'Orbitron', sans-serif;
+  font-size: clamp(2.7rem, 8vw, 4.6rem);
+  color: color-mix(in srgb, var(--person-color) 32%, transparent);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--person-color) 22%, transparent);
+}
+
+.sf-au-person p {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Pixel Digivolve', 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  color: var(--person-color);
+  text-align: center;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--person-color) 24%, transparent);
+}
+
+.sf-au-relationship {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sf-au-relation-line {
+  width: 1px;
+  flex: 1;
+  min-height: 22px;
+  background: linear-gradient(transparent, color-mix(in srgb, var(--au-accent) 46%, transparent), transparent);
+}
+
+.sf-au-relation-core {
+  width: 100%;
+  min-height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 8px 6px;
+  border: 1px solid color-mix(in srgb, var(--au-accent) 36%, transparent);
+  background: color-mix(in srgb, var(--au-accent) 8%, rgba(0,0,0,0.28));
+  color: var(--au-accent);
+  font-family: 'Pixel Digivolve', 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--au-accent) 38%, transparent);
+}
+
+.sf-au-dialogue-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sf-au-quote {
+  min-width: 0;
+  min-height: 78px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.22);
+}
+
+.sf-au-quote-manon {
+  border-color: color-mix(in srgb, var(--au-manon) 24%, transparent);
+  background: color-mix(in srgb, var(--au-manon) 7%, rgba(0,0,0,0.22));
+}
+
+.sf-au-quote-dylan {
+  border-color: color-mix(in srgb, var(--au-dylan) 20%, transparent);
+  background: color-mix(in srgb, var(--au-dylan) 6%, rgba(0,0,0,0.22));
+}
+
+.sf-au-quote p {
+  color: rgba(255,255,255,0.66);
+  font-family: 'Noto Serif KR', 'Gowun Batang', serif;
+  font-size: clamp(0.82rem, 0.9vw, 0.92rem);
+  line-height: 1.72;
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+
+.sf-au-quote-dylan p {
+  text-align: right;
+}
+
+.sf-au-empty {
+  max-width: 520px;
+  margin: 0 auto;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(0,255,204,0.08), transparent 42%),
+    rgba(0, 5, 8, 0.88);
+}
+
+.sf-au-empty > div:last-child {
+  padding: 54px 24px 58px;
+}
+
+@media (max-width: 720px) {
+  .sf-au-scroll {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .sf-au-card-body {
+    padding: 14px;
+  }
+
+  .sf-au-cast-grid {
+    grid-template-columns: minmax(0, 1fr) 58px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .sf-au-dialogue-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Timeline orbital route ── */
 .sf-timeline-stage {
   position: absolute;

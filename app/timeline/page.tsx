@@ -362,7 +362,7 @@ export default function TimelinePage() {
 
                   {active.character && (
                     <div className="sf-timeline-character" style={{ color: getAccent(active), borderColor: `${getAccent(active)}42` }}>
-                      {active.character === 'both' ? 'Manon × Dylan' : active.character === 'manon' ? 'Manon' : 'Dylan'}
+                      {active.character === 'both' ? 'KIM MINJAE × LEE SUN' : active.character === 'manon' ? 'KIM MINJAE' : 'LEE SUN'}
                     </div>
                   )}
 
