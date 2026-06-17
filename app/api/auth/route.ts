@@ -4,11 +4,20 @@ import { cookies } from 'next/headers'
 
 const VALID_USERNAMES = ['manon', 'dylan']
 
+function normalizeUsername(username: unknown) {
+  if (typeof username !== 'string') return null
+  const key = username.trim().toLowerCase().replace(/_/g, ' ')
+  if (key === 'manon' || key === 'kim minjae') return 'manon'
+  if (key === 'dylan' || key === 'lee sun') return 'dylan'
+  return null
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json()
+    const normalizedUsername = normalizeUsername(username)
 
-    if (!username || !VALID_USERNAMES.includes(username.toLowerCase())) {
+    if (!normalizedUsername || !VALID_USERNAMES.includes(normalizedUsername)) {
       return NextResponse.json(
         { error: '유효하지 않은 사용자입니다.' },
         { status: 400 }
@@ -31,7 +40,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const token = await encrypt({ isAdmin: true, username: username.toLowerCase() })
+    const token = await encrypt({ isAdmin: true, username: normalizedUsername })
 
     cookies().set('session', token, {
       httpOnly: true,
@@ -40,7 +49,7 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24,
     })
 
-    return NextResponse.json({ success: true, username: username.toLowerCase() })
+    return NextResponse.json({ success: true, username: normalizedUsername })
   } catch (error) {
     console.error('Auth error:', error)
     return NextResponse.json(
