@@ -8,6 +8,11 @@ import ChatPopup from '@/components/ChatPopup'
 export const metadata: Metadata = {
   title: 'SUNJAE',
   description: 'SUNJAE Archive',
+  icons: {
+    icon: [{ url: '/sunjae-favicon.png?v=2', type: 'image/png' }],
+    shortcut: '/sunjae-favicon.png?v=2',
+    apple: '/apple-icon.png',
+  },
 }
 
 export default function RootLayout({

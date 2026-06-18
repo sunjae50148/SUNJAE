@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { encrypt, verifyPassword } from '@/lib/auth'
+import { encrypt, hasPasswordConfig, verifyPassword } from '@/lib/auth'
 import { cookies } from 'next/headers'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 const VALID_USERNAMES = ['manon', 'dylan']
 
@@ -16,9 +19,6 @@ export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json()
     const normalizedUsername = normalizeUsername(username)
-    const hasPasswordConfig = Boolean(
-      process.env.ADMIN_PASSWORD?.trim() || process.env.ADMIN_PASSWORD_HASH?.trim()
-    )
 
     if (!normalizedUsername || !VALID_USERNAMES.includes(normalizedUsername)) {
       return NextResponse.json(
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!hasPasswordConfig) {
+    if (!hasPasswordConfig()) {
       return NextResponse.json(
         { error: '서버에 ADMIN_PASSWORD가 설정되지 않았습니다.', code: 'AUTH_ENV_MISSING' },
         { status: 500 }
