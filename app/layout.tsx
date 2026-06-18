@@ -6,8 +6,8 @@ import SketchyFilter from '@/components/SketchyFilter'
 import ChatPopup from '@/components/ChatPopup'
 
 export const metadata: Metadata = {
-  title: 'SOMBRE',
-  description: 'SOMBRE Archive',
+  title: 'SUNJAE',
+  description: 'SUNJAE Archive',
 }
 
 export default function RootLayout({

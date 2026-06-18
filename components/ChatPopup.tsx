@@ -39,7 +39,7 @@ export default function ChatPopup() {
 
   // Restore character from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('sombre_chat_as')
+    const saved = localStorage.getItem('sunjae_chat_as')
     if (saved === 'manon' || saved === 'dylan') {
       setChatAs(saved)
       setScreen('chat')
@@ -76,7 +76,7 @@ export default function ChatPopup() {
 
   const selectCharacter = (char: 'manon' | 'dylan') => {
     setChatAs(char)
-    localStorage.setItem('sombre_chat_as', char)
+    localStorage.setItem('sunjae_chat_as', char)
     setScreen('chat')
   }
 
@@ -181,7 +181,7 @@ export default function ChatPopup() {
                 <div className="flex items-center gap-2">
                   {/* Current character indicator */}
                   <button
-                    onClick={() => { setScreen('select'); setChatAs(null); localStorage.removeItem('sombre_chat_as') }}
+                    onClick={() => { setScreen('select'); setChatAs(null); localStorage.removeItem('sunjae_chat_as') }}
                     style={{
                       fontFamily: "'Playfair Display', serif",
                       fontStyle: 'italic',

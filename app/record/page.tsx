@@ -555,7 +555,7 @@ export default function RecordPage() {
               ))}
             </div>
             <div className="mt-12 text-center">
-              <span className="label-caps text-white/10" style={{ fontSize: '0.45rem', letterSpacing: '0.2em' }}>SOMBRE</span>
+              <span className="label-caps text-white/10" style={{ fontSize: '0.45rem', letterSpacing: '0.2em' }}>SUNJAE</span>
             </div>
           </div>
         </div>

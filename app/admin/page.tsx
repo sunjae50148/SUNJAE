@@ -1537,7 +1537,7 @@ export default function AdminPage() {
       <div className="min-h-screen bg-bg flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-bg-cream border border-ink/10 rounded-lg p-8">
           <h1 className="font-display text-center text-[#8B1538] mb-6">ADMIN ACCESS</h1>
-          <form onSubmit={async (e) => { e.preventDefault(); try { const res = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: adminUser, password }) }); if (res.ok) { setIsLoggedIn(true); localStorage.setItem('same_admin_login', 'true'); localStorage.setItem('same_logged_user', adminUser); localStorage.setItem('sombre_chat_as', adminUser) } else alert('비밀번호 불일치') } catch { alert('인증 오류') } }}>
+          <form onSubmit={async (e) => { e.preventDefault(); try { const res = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: adminUser, password }) }); if (res.ok) { setIsLoggedIn(true); localStorage.setItem('same_admin_login', 'true'); localStorage.setItem('same_logged_user', adminUser); localStorage.setItem('sunjae_chat_as', adminUser) } else alert('비밀번호 불일치') } catch { alert('인증 오류') } }}>
             <div className="flex gap-2 mb-4">
               {(['manon', 'dylan'] as const).map(u => (
                 <button key={u} type="button" onClick={() => setAdminUser(u)}
@@ -1560,7 +1560,7 @@ export default function AdminPage() {
       {/* 사이드바 */}
       <div className="w-80 bg-bg-cream border-r border-ink/10 flex flex-col">
         <div className="p-6 border-b border-ink/10">
-          <h1 className="font-display text-xl mb-4" style={{ color: '#D9809A', fontStyle: 'italic', letterSpacing: '0.04em' }}>SOMBRE · ADMIN</h1>
+          <h1 className="font-display text-xl mb-4" style={{ color: '#D9809A', fontStyle: 'italic', letterSpacing: '0.04em' }}>SUNJAE · ADMIN</h1>
           
           {/* 탭 선택 */}
           <div className="flex gap-2 mb-4">

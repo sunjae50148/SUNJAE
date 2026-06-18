@@ -3,7 +3,7 @@ import { kv } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
-const KEEPALIVE_KEY = 'sombre_kv_keepalive'
+const KEEPALIVE_KEY = 'sunjae_kv_keepalive'
 
 export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET

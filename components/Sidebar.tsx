@@ -37,7 +37,7 @@ export default function Sidebar() {
               letterSpacing: '0.2em',
               fontWeight: 700,
             }}>
-            SYS://SOMBRE
+            SYS://SUNJAE
           </Link>
         </div>
 
